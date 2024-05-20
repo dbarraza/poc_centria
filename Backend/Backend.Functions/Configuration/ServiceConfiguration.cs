@@ -2,8 +2,6 @@
 using Backend.Common.Interfaces.DataAccess;
 using Backend.Common.Interfaces.Services;
 using Backend.Common.Providers;
-using Backend.Common.Services;
-using Backend.DataAccess;
 using Backend.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,13 +22,12 @@ namespace Backend.Functions.Configuration
         {
             // Services
             services.AddScoped<ISessionProvider, SessionProvider>();
-            services.AddScoped<IDocumentService, DocumentService>();
+            services.AddScoped<IExcelService, ExcelService>();
+            services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<ICvService, CvService>();
 
             // Repositories
             services.AddScoped<IDataAccess, DataAccess.DataAccess>();
-            services.AddScoped<IDocumentRepository, DocumentRepository>();
-            services.AddScoped<IDocumentClassificatorService, DocumentClassificatorService>();
-            services.AddScoped<IDocumentExtractorService, DocumentExtractorService>();
 
             return services;
         }

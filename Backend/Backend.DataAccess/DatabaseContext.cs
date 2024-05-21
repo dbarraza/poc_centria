@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
+
+using Backend.Models;
 namespace Backend.DataAccess
 {
     /// <summary>
@@ -9,6 +11,9 @@ namespace Backend.DataAccess
     public class DatabaseContext : DbContext
     {
         private readonly IConfiguration config;
+
+        public DbSet<ReceivedCv> ReceivedCvs { get; set; }
+
 
         /// <summary>
         /// EF Core constructor
@@ -65,6 +70,10 @@ namespace Backend.DataAccess
         /// </summary>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ReceivedCv>().ToContainer("cv-sin-procesar");
+            modelBuilder.Entity<ReceivedCv>().HasNoDiscriminator();
+            modelBuilder.Entity<ReceivedCv>().HasKey(x => x.ReceivedCvId);
+            modelBuilder.Entity<ReceivedCv>().HasPartitionKey(x => x.ReceivedCvId);
         }
     }
 }

@@ -1,13 +1,12 @@
 {
   "profiles": {
-    "Backend.Functions": {
-      "commandName": "Project",
-      "commandLineArgs": "--port 7121"
+    "Backend.Services": {
+      "commandName": "Project"
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
-      "httpPort": 31675,
+      "httpPort": 33735,
       "useSSL": false
     }
   }

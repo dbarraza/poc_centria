@@ -1,5 +1,6 @@
 ﻿using Backend.Common.Models;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Net;
 
@@ -14,10 +15,11 @@ namespace Backend.Common.Extensions
         /// <summary>
         /// Returns a HTTP response after executing a method with no parameters
         /// </summary>   
-        public static async Task<HttpResponseData> CreateResponse<TResult>(this HttpRequestData request,
-            Func<Task<Result<TResult>>> func, Action<Response<TResult>> responseLinks)
+        public static async Task<HttpResponseData> CreateResponse<T, TResult>(this HttpRequestData request,
+            Func<T, Task<Result<TResult>>> func, T param, Action<Response<TResult>> responseLinks, ILogger logger)
         {
-            var result = await func();
+            //logger.LogInformation($"Executing {request.FunctionContext?.FunctionDefinition?.Name}");
+            var result = await func(param);
             return await CreateResponseAsync(request, result, responseLinks);
         }
 

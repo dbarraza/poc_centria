@@ -86,7 +86,7 @@ namespace Backend.Service.BusinessLogic
         {
             try
             {
-                var token = this.dataAccess.GetSasToken("booking", 60);
+                var token = this.dataAccess.GetSasToken("cv-procesados", 60);
                 var data = (await this.dataAccess.ReceivedCvs.GetAsync()).ToList();
                 foreach (var item in data)
                 {
@@ -102,7 +102,7 @@ namespace Backend.Service.BusinessLogic
 
 
         /// <summary>
-        /// Clasifica un correo usando OpenAI.
+        /// extrae la informacion de un Cv usando doc inteligence y lo califica usando OpenAI.
         /// </summary>
         
         public async Task<bool> ProcessCvFromStorageAsync(Stream file, string filename)
@@ -127,7 +127,7 @@ namespace Backend.Service.BusinessLogic
 
                 DataAccess.DataAccess dataAccess = new DataAccess.DataAccess(_configuration);
 
-                string uriCV = await dataAccess.CopyBlobAsync(filename, name, cvProceced, cvNoProceced);
+                string uriCV = await dataAccess.CopyBlobAsync(filename, name, cvNoProceced, cvProceced);
 
                 this.logger.LogInformation($"Se ha movido el archivo del CV al contenedor {cvProceced} y se ha eliminado del contenedor: {cvNoProceced}");
 

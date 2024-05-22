@@ -53,6 +53,11 @@ namespace Backend.DataAccess
             {
                 connectionString = config.GetSection("cosmos:ConnectionString").Value;
                 databaseName = config.GetSection("cosmos:Database").Value;
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    databaseName = config["DatabaseName"]?.ToString();
+                    connectionString = config["DatabaseConnectionString"]?.ToString();
+                }
             }
 
             if (!string.IsNullOrEmpty(connectionString))

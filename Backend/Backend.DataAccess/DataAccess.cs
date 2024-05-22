@@ -43,6 +43,11 @@ namespace Backend.DataAccess
             {
                 BlobContainerClient originalContainerClient = this._blobServiceClient.GetBlobContainerClient(originalContainerName);
                 BlobClient originalBlobClient = originalContainerClient.GetBlobClient(filename);
+                // Verificar que el blob original existe
+                if (!await originalBlobClient.ExistsAsync())
+                {
+                    throw new FileNotFoundException($"El blob '{filename}' no existe en el contenedor '{originalContainerName}'.");
+                }
 
                 BlobContainerClient newContainerClient = this._blobServiceClient.GetBlobContainerClient(newContainerName);
                 BlobClient newBlobClient = newContainerClient.GetBlobClient(newFileName);

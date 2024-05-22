@@ -30,20 +30,20 @@ namespace Backend.Functions.Configuration
                     if (!string.IsNullOrEmpty(connectionString))
                     {
                         //version 1
-                        //config.AddAzureAppConfiguration(connectionString);
+                        config.AddAzureAppConfiguration(connectionString);
 
-                        //version 2
-                        config.AddAzureAppConfiguration(options =>
-                        {
-                            options.Connect(connectionString)
-                                    .ConfigureKeyVault(kv =>
-                                    {
-                                        var clientId = Environment.GetEnvironmentVariable("ClientId");
-                                        var clientSecret = Environment.GetEnvironmentVariable("ClientSecret");
-                                        var directoryId = Environment.GetEnvironmentVariable("DirectoryId");
-                                        kv.SetCredential(new ClientSecretCredential(directoryId, clientId, clientSecret));
-                                    });
-                        });
+                        ////version 2
+                        //config.AddAzureAppConfiguration(options =>
+                        //{
+                        //    options.Connect(connectionString)
+                        //            .ConfigureKeyVault(kv =>
+                        //            {
+                        //                var clientId = Environment.GetEnvironmentVariable("ClientId");
+                        //                var clientSecret = Environment.GetEnvironmentVariable("ClientSecret");
+                        //                var directoryId = Environment.GetEnvironmentVariable("DirectoryId");
+                        //                kv.SetCredential(new ClientSecretCredential(directoryId, clientId, clientSecret));
+                        //            });
+                        //});
 
                         //version 3
                         //config.AddAzureAppConfiguration(options =>

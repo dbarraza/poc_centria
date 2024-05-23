@@ -1,4 +1,5 @@
 ﻿using Backend.Entities;
+using System.Reflection.Metadata;
 
 namespace Backend.Common.Interfaces.DataAccess
 {
@@ -7,6 +8,12 @@ namespace Backend.Common.Interfaces.DataAccess
     /// </summary>
     public interface IDataAccess
     {
+        /// <summary>
+        /// Application collection
+        /// </summary>
+        IRepository<Application> Applications { get; }
+
+
         /// <summary>
         /// Clean up resources
         /// </summary>

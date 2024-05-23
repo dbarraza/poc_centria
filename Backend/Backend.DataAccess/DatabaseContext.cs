@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Backend.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Reflection.Metadata;
 
 namespace Backend.DataAccess
 {
@@ -9,6 +11,8 @@ namespace Backend.DataAccess
     public class DatabaseContext : DbContext
     {
         private readonly IConfiguration config;
+
+        private readonly DbSet<Application> applications;
 
         /// <summary>
         /// EF Core constructor
@@ -63,8 +67,15 @@ namespace Backend.DataAccess
         /// <summary>
         /// Seeds the BD
         /// </summary>
+        /// <summary>
+        /// Seeds the BD
+        /// </summary>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Application>()
+                .ToContainer("Applications")
+                .HasPartitionKey(c => c.Id)
+                .HasNoDiscriminator();
         }
     }
 }

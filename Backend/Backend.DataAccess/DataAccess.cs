@@ -15,6 +15,9 @@ namespace Backend.DataAccess
         private string storageConnectionString;
         private readonly BlobServiceClient _blobServiceClient;
 
+        /// <inheritdoc/>
+        public IRepository<Application> Applications { get; }
+
         /// <summary>
         /// Gets the configuration
         /// </summary>
@@ -22,9 +25,12 @@ namespace Backend.DataAccess
         {
             _context = new DatabaseContext(configuration);
             
-            this._context.Database.EnsureCreated();
+            _context.Database.EnsureCreated();
             storageConnectionString = configuration["StorageConnectionString"];
             _blobServiceClient = new BlobServiceClient(this.storageConnectionString);
+            
+            // Repositories
+            Applications = new Repository<Application>(_context);
         }
 
         /// <inheritdoc/>

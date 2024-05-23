@@ -4,6 +4,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using Backend.Common.Interfaces.Services;
 using Microsoft.Extensions.Configuration;
+using Azure;
 
 namespace Backend.Services
 {
@@ -66,6 +67,46 @@ namespace Backend.Services
 
             await blobClient.UploadAsync(file, uploadOptions);
             return blobClient.Uri?.ToString();
+        }
+
+        // <inheritdoc />
+        public async Task<string> CopyBlobAsync(string filename, string newFileName, string originalContainerName, string newContainerName)
+        {
+            try
+            {
+                BlobContainerClient originalContainerClient = this._blobServiceClient.GetBlobContainerClient(originalContainerName);
+                BlobClient originalBlobClient = originalContainerClient.GetBlobClient(filename);
+                // Verificar que el blob original existe
+                if (!await originalBlobClient.ExistsAsync())
+                {
+                    throw new FileNotFoundException($"El blob '{filename}' no existe en el contenedor '{originalContainerName}'.");
+                }
+
+                BlobContainerClient newContainerClient = this._blobServiceClient.GetBlobContainerClient(newContainerName);
+                BlobClient newBlobClient = newContainerClient.GetBlobClient(newFileName);
+
+                var emlMemoryStream = new MemoryStream();
+                await originalBlobClient.DownloadToAsync(emlMemoryStream);
+                emlMemoryStream.Position = 0;
+
+                await newBlobClient.UploadAsync(emlMemoryStream, true);
+                await originalBlobClient.DeleteIfExistsAsync();
+
+                // Devuelve el URI del blob
+                return newBlobClient.Uri.ToString();
+            }
+            catch (RequestFailedException ex)
+            {
+                // Manejo de excepciones específicas de Azure.Storage.Blobs
+                Console.WriteLine($"Error al copiar el blob: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Otros tipos de excepciones
+                Console.WriteLine($"Error desconocido al copiar el blob: {ex.Message}");
+                throw;
+            }
         }
     }
 }

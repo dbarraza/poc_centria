@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -59,6 +60,28 @@ namespace Backend.Functions.Functions
             {
                 _logger.LogError(ex, "Error uploading document");
                 return request.CreateResponse(HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Process a new excel document
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="filename"></param>
+        /// <param name="folder"></param>
+        /// <returns></returns>
+        [Function(nameof(ProcessFileFromStorageAsync))]
+        public async Task ProcessFileFromStorageAsync([BlobTrigger(blobPath: "excel-pending/{folder}/{filename}", Connection = "AzureWebJobsStorage")] Stream file, string folder, string filename)
+        {
+            try
+            {
+                using var blobStreamReader = new StreamReader(file);
+                var content = await blobStreamReader.ReadToEndAsync();
+                _logger.LogInformation($"C# Blob trigger function Processed blob\n Name: {filename} \n Data: {content}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[ProcessFileFromStorageAsync:ProcessFileFromStorageAsync] - Error processing document {ex.Message}");
             }
         }
     }

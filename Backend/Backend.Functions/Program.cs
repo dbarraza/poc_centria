@@ -73,7 +73,7 @@ namespace Backend.Functions
                   services.AddOpenAPIConfigure();
                   services.AddServices();
                   services.AddScoped<ISessionProvider, SessionProvider>();
-                  services.AddScoped<ICvsProcessingLogic, CvProcessingLogic>();
+                  services.AddScoped<ICvService, CvService>();
                   services.AddScoped<IDataAccess, Backend.DataAccess.DataAccess>();
               })
               .Build();

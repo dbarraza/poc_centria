@@ -15,5 +15,12 @@ namespace Backend.Common.Interfaces.Services
         /// <param name="contentType"></param>
         /// <returns></returns>
         public Task<Result<string>> UploadAsync(Guid applicationId, string fileName, Stream data, string contentType);
+
+        /// <summary>
+        /// Process a document
+        /// </summary>
+        /// <param name="fileUri"></param>
+        /// <returns></returns>
+        public Task ProcessFileAsync(Guid applicationId, string fileName);
     }
 }

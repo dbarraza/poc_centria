@@ -1,4 +1,4 @@
-# ¿Qué es Centria?
+# ¿Qué hace Centria?
 
 Centria es una empresa de servicios administrativos enfocada en identificar sinergias y generar eficiencias, con el propósito de dar soporte y soluciones para la creación de valor.
 

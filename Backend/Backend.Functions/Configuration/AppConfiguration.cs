@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Configuration;
 
 namespace Backend.Functions.Configuration
 {
@@ -29,31 +28,17 @@ namespace Backend.Functions.Configuration
                     var connectionString = Environment.GetEnvironmentVariable("AppConfiguration");
                     if (!string.IsNullOrEmpty(connectionString))
                     {
-                        //version 1
-                        config.AddAzureAppConfiguration(connectionString);
-
-                        ////version 2
-                        //config.AddAzureAppConfiguration(options =>
-                        //{
-                        //    options.Connect(connectionString)
-                        //            .ConfigureKeyVault(kv =>
-                        //            {
-                        //                var clientId = Environment.GetEnvironmentVariable("ClientId");
-                        //                var clientSecret = Environment.GetEnvironmentVariable("ClientSecret");
-                        //                var directoryId = Environment.GetEnvironmentVariable("DirectoryId");
-                        //                kv.SetCredential(new ClientSecretCredential(directoryId, clientId, clientSecret));
-                        //            });
-                        //});
-
-                        //version 3
-                        //config.AddAzureAppConfiguration(options =>
-                        //{
-                        //    options.Connect(connectionString);
-                        //    options.ConfigureKeyVault(kvoption =>
-                        //    {
-                        //        kvoption.SetCredential(new DefaultAzureCredential());
-                        //    });
-                        //});
+                        config.AddAzureAppConfiguration(options =>
+                        {
+                            options.Connect(connectionString)
+                                    .ConfigureKeyVault(kv =>
+                                    {
+                                        var clientId = Environment.GetEnvironmentVariable("ClientId");
+                                        var clientSecret = Environment.GetEnvironmentVariable("ClientSecret");
+                                        var directoryId = Environment.GetEnvironmentVariable("DirectoryId");
+                                        kv.SetCredential(new ClientSecretCredential(directoryId, clientId, clientSecret));
+                                    });
+                        });
                     }
                 });
 

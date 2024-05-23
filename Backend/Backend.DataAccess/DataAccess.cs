@@ -1,16 +1,11 @@
-﻿using Azure.Storage;
+﻿using Azure;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using Backend.Common.Interfaces.DataAccess;
 using Backend.Entities;
-using Microsoft.Extensions.Configuration;
-using Azure;
-using Backend.Common.Interfaces;
 using Backend.Models;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace Backend.DataAccess
 {
@@ -23,6 +18,9 @@ namespace Backend.DataAccess
         private readonly BlobServiceClient _blobServiceClient;
 
         /// <inheritdoc/>
+        public IRepository<Application> Applications { get; }
+
+        /// <inheritdoc/>
         public IRepository<ReceivedCv> ReceivedCvs { get; }
 
 
@@ -32,10 +30,13 @@ namespace Backend.DataAccess
         public DataAccess(IConfiguration configuration)
         {
             _context = new DatabaseContext(configuration);
-            this.ReceivedCvs = new Repository<ReceivedCv>(_context);
+            
             this._context.Database.EnsureCreated();
             storageConnectionString = configuration["StorageConnectionString"];
             _blobServiceClient = new BlobServiceClient(this.storageConnectionString);
+            
+            // Repositories
+            Applications = new Repository<Application>(_context);
         }
         public async Task<string> CopyBlobAsync(string filename, string newFileName, string originalContainerName, string newContainerName)
         {

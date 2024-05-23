@@ -17,6 +17,12 @@ namespace Backend.Common.Interfaces.DataAccess
         IRepository<ReceivedCv> ReceivedCvs { get; }
 
         /// <summary>
+        /// Application collection
+        /// </summary>
+        IRepository<Application> Applications { get; }
+
+
+        /// <summary>
         /// Clean up resources
         /// </summary>
         void Dispose();
@@ -25,17 +31,5 @@ namespace Backend.Common.Interfaces.DataAccess
         /// Saves all the changess
         /// </summary>
         Task<int> SaveChangesAsync();
-
-        /// <summary>
-        /// Get sas token
-        /// </summary>
-        string GetSasToken(string container, int expiresOnMinutes);
-
-        /// <summary>
-        /// Creates a storage folder if it does not exist
-        /// </summary>
-        /// <param name="folerName"></param>
-        /// <returns></returns>
-        Task CreateStorageFolderIfNotExist(string folderName);
     }
 }

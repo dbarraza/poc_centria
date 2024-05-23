@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Backend.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Reflection.Metadata;
 
 
 using Backend.Models;
@@ -14,6 +16,8 @@ namespace Backend.DataAccess
 
         public DbSet<ReceivedCv> ReceivedCvs { get; set; }
 
+
+        private readonly DbSet<Application> applications;
 
         /// <summary>
         /// EF Core constructor
@@ -73,8 +77,15 @@ namespace Backend.DataAccess
         /// <summary>
         /// Seeds the BD
         /// </summary>
+        /// <summary>
+        /// Seeds the BD
+        /// </summary>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Application>()
+                .ToContainer("Applications")
+                .HasPartitionKey(c => c.Id)
+                .HasNoDiscriminator();
             modelBuilder.Entity<ReceivedCv>().ToContainer("cv-sin-procesar");
             modelBuilder.Entity<ReceivedCv>().HasNoDiscriminator();
             modelBuilder.Entity<ReceivedCv>().HasKey(x => x.ReceivedCvId);

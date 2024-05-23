@@ -23,8 +23,9 @@ namespace Backend.Functions.Configuration
             // Services
             services.AddScoped<ISessionProvider, SessionProvider>();
             services.AddScoped<IExcelService, ExcelService>();
-            services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<IApplicationService, ApplicationService>();
             services.AddScoped<ICvService, CvService>();
+            services.AddScoped<IFileStorage, FileStorage>();
 
             // Repositories
             services.AddScoped<IDataAccess, DataAccess.DataAccess>();

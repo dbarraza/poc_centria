@@ -1,5 +1,8 @@
 ﻿using Backend.Entities;
-using System.Reflection.Metadata;
+using Backend.Models;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Backend.Common.Interfaces.DataAccess
 {
@@ -7,7 +10,12 @@ namespace Backend.Common.Interfaces.DataAccess
     /// Data Access interface
     /// </summary>
     public interface IDataAccess
-    {
+    {   
+        /// <summary>
+        /// Documents collection
+        /// </summary>
+        IRepository<ReceivedCv> ReceivedCvs { get; }
+
         /// <summary>
         /// Application collection
         /// </summary>
@@ -23,12 +31,5 @@ namespace Backend.Common.Interfaces.DataAccess
         /// Saves all the changess
         /// </summary>
         Task<int> SaveChangesAsync();
-
-        /// <summary>
-        /// Creates a storage folder if it does not exist
-        /// </summary>
-        /// <param name="folerName"></param>
-        /// <returns></returns>
-        Task CreateStorageFolderIfNotExist(string folderName);
     }
 }

@@ -52,10 +52,10 @@ namespace Backend.Services
         {
             if (file == null) throw new ArgumentNullException(nameof(file));
 
-            var imagesContainerClient = _blobServiceClient.GetBlobContainerClient(container);
-            await imagesContainerClient.CreateIfNotExistsAsync();
+            var bloblClient = _blobServiceClient.GetBlobContainerClient(container);
+            await bloblClient.CreateIfNotExistsAsync();
 
-            var blobClient = imagesContainerClient.GetBlobClient($"{folder}/{fileName}{extension}");
+            var blobClient = bloblClient.GetBlobClient($"{folder}/{fileName}{extension}");
             file.Position = 0;
 
             var uploadOptions = new BlobUploadOptions

@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Reflection.Metadata;
 
+
+using Backend.Models;
 namespace Backend.DataAccess
 {
     /// <summary>
@@ -11,6 +13,9 @@ namespace Backend.DataAccess
     public class DatabaseContext : DbContext
     {
         private readonly IConfiguration config;
+
+        public DbSet<ReceivedCv> ReceivedCvs { get; set; }
+
 
         private readonly DbSet<Application> applications;
 
@@ -52,6 +57,11 @@ namespace Backend.DataAccess
             {
                 connectionString = config.GetSection("cosmos:ConnectionString").Value;
                 databaseName = config.GetSection("cosmos:Database").Value;
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    databaseName = config["DatabaseName"]?.ToString();
+                    connectionString = config["DatabaseConnectionString"]?.ToString();
+                }
             }
 
             if (!string.IsNullOrEmpty(connectionString))
@@ -76,6 +86,10 @@ namespace Backend.DataAccess
                 .ToContainer("Applications")
                 .HasPartitionKey(c => c.Id)
                 .HasNoDiscriminator();
+            modelBuilder.Entity<ReceivedCv>().ToContainer("cv-sin-procesar");
+            modelBuilder.Entity<ReceivedCv>().HasNoDiscriminator();
+            modelBuilder.Entity<ReceivedCv>().HasKey(x => x.ReceivedCvId);
+            modelBuilder.Entity<ReceivedCv>().HasPartitionKey(x => x.ReceivedCvId);
         }
     }
 }

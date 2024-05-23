@@ -24,7 +24,10 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
     <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
-
+	<PackageReference Include="Microsoft.Azure.CognitiveServices.Language.TextAnalytics" Version="4.1.0-preview.2" />
+	<PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.14" />
+	<PackageReference Include="Azure.AI.FormRecognizer" Version="4.1.0" />
+	<PackageReference Include="AI.Dev.OpenAI.GPT" Version="1.0.2" />
 
   </ItemGroup>
   <ItemGroup>

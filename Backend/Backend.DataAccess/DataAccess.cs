@@ -1,8 +1,10 @@
-﻿using Azure.Storage;
+﻿using Azure;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using Backend.Common.Interfaces.DataAccess;
 using Backend.Entities;
+using Backend.Models;
 using Microsoft.Extensions.Configuration;
 
 namespace Backend.DataAccess
@@ -18,20 +20,65 @@ namespace Backend.DataAccess
         /// <inheritdoc/>
         public IRepository<Application> Applications { get; }
 
+        /// <inheritdoc/>
+        public IRepository<ReceivedCv> ReceivedCvs { get; }
+
+
         /// <summary>
-        /// Gets the configuration
+        /// Copia un blob de un contenedor a otro y elmina el original
         /// </summary>
         public DataAccess(IConfiguration configuration)
         {
             _context = new DatabaseContext(configuration);
             
-            _context.Database.EnsureCreated();
+            this._context.Database.EnsureCreated();
             storageConnectionString = configuration["StorageConnectionString"];
             _blobServiceClient = new BlobServiceClient(this.storageConnectionString);
             
             // Repositories
             Applications = new Repository<Application>(_context);
         }
+        public async Task<string> CopyBlobAsync(string filename, string newFileName, string originalContainerName, string newContainerName)
+        {
+            try
+            {
+                BlobContainerClient originalContainerClient = this._blobServiceClient.GetBlobContainerClient(originalContainerName);
+                BlobClient originalBlobClient = originalContainerClient.GetBlobClient(filename);
+                // Verificar que el blob original existe
+                if (!await originalBlobClient.ExistsAsync())
+                {
+                    throw new FileNotFoundException($"El blob '{filename}' no existe en el contenedor '{originalContainerName}'.");
+                }
+
+                BlobContainerClient newContainerClient = this._blobServiceClient.GetBlobContainerClient(newContainerName);
+                BlobClient newBlobClient = newContainerClient.GetBlobClient(newFileName);
+
+                var emlMemoryStream = new MemoryStream();
+                await originalBlobClient.DownloadToAsync(emlMemoryStream);
+                emlMemoryStream.Position = 0;
+
+                await newBlobClient.UploadAsync(emlMemoryStream, true);
+                await originalBlobClient.DeleteIfExistsAsync();
+
+                // Devuelve el URI del blob
+                return newBlobClient.Uri.ToString();
+            }
+            catch (RequestFailedException ex)
+            {
+                // Manejo de excepciones específicas de Azure.Storage.Blobs
+                Console.WriteLine($"Error al copiar el blob: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Otros tipos de excepciones
+                Console.WriteLine($"Error desconocido al copiar el blob: {ex.Message}");
+                throw;
+            }
+        }
+
+
+
 
         /// <inheritdoc/>
         public Task<int> SaveChangesAsync()

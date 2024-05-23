@@ -1,38 +1,33 @@
-﻿using System.Net;
-using System.Threading.Tasks;
+﻿using Backend.Common.Extensions;
+using Backend.Common.Interfaces.Services;
+using Backend.Common.Models;
+using Backend.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.OpenApi.Models;
-using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using Backend.Common.Interfaces.Services;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
-using Backend.Common.Extensions;
-using Backend.Common.Models;
-using Backend.Common.Interfaces;
-using Backend.Models;
-using System.IO;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 namespace Backend.Services
 {
-    /// <inheritdoc />
-    public class CvService : ICvService
-    {
-    }
+
     /// <summary>
     /// Documents backend API
     /// </summary>
     public class CvsProcessing
     {
         private readonly ILogger<CvsProcessing> logger;
-        private readonly ICvsProcessingLogic businessLogic;
+        private readonly ICvService businessLogic;
 
 
         /// <summary>
         /// Receive all the depedencies by DI
         /// </summary>        
-        public CvsProcessing(ICvsProcessingLogic businessLogic, ILogger<CvsProcessing> logger)
+        public CvsProcessing(ICvService businessLogic, ILogger<CvsProcessing> logger)
         {
             this.logger = logger;
             this.businessLogic = businessLogic;

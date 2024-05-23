@@ -2,6 +2,7 @@
 using Backend.Common.Interfaces.DataAccess;
 using Backend.Common.Interfaces.Services;
 using Backend.Common.Providers;
+using Backend.Service.BusinessLogic;
 using Backend.Services;
 using Microsoft.Extensions.DependencyInjection;
 

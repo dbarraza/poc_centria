@@ -7,11 +7,9 @@ using Microsoft.Extensions.Logging;
 namespace Backend.Services
 {
     /// <inheritdoc/>
-    public class ApplicationService : BaseLogic<ApplicationService> , IApplicationService
+    public class ApplicationService : BaseLogic , IApplicationService
     {
-        private readonly ILogger<ApplicationService> _logger;
-
-        public ApplicationService(ISessionProvider sessionProvider, IDataAccess dataAccess, ILogger<ApplicationService> logger) : base(sessionProvider, dataAccess, logger)
+        public ApplicationService(ISessionProvider sessionProvider, IDataAccess dataAccess, ILogger<IApplicationService> logger) : base(sessionProvider, dataAccess, logger)
         {
         }
 
@@ -34,7 +32,7 @@ namespace Backend.Services
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex, $"[ApplicationService:CreateApplicationAsync] - An error occurred while creating a new application with name: {name}. Exception:{ex.Message}");
+                logger.LogError(ex, $"[ApplicationService:CreateApplicationAsync] - An error occurred while creating a new application with name: {name}. Exception:{ex.Message}");
                 throw;
             }
         }

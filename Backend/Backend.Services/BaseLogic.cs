@@ -8,9 +8,9 @@ namespace Backend.Services
     /// <summary>
     /// Base logic class
     /// </summary>
-    public class BaseLogic<T> where T : class
+    public class BaseLogic 
     {
-        protected readonly ILogger<T> logger;
+        protected readonly ILogger logger;
         protected readonly ISessionProvider sessionProvider;
         protected readonly IDataAccess dataAccess;
 
@@ -18,7 +18,7 @@ namespace Backend.Services
         /// Gets by DI the dependeciees
         /// </summary>
         /// <param name="dataAccess"></param>
-        public BaseLogic(ISessionProvider sessionProvider, IDataAccess dataAccess, ILogger<T> logger)
+        public BaseLogic(ISessionProvider sessionProvider, IDataAccess dataAccess, ILogger logger)
         {
             this.sessionProvider = sessionProvider;
             this.dataAccess = dataAccess;

@@ -1,25 +1,21 @@
-﻿using System.Threading.Tasks;
-using AI.Dev.OpenAI.GPT;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using Backend.Common.Models;
-using Backend.Common.Interfaces;
-using Backend.Common.Interfaces.DataAccess;
-using Backend.Models;
-using Backend.Common.Logic;
-using System.Linq;
-using System.IO;
-using Microsoft.Extensions.Configuration;
-using Azure.AI.OpenAI;
+﻿using AI.Dev.OpenAI.GPT;
 using Azure;
 using Azure.AI.FormRecognizer.DocumentAnalysis;
-using System.Text.RegularExpressions;
+using Azure.AI.OpenAI;
+using Backend.Common.Interfaces;
+using Backend.Common.Interfaces.DataAccess;
+using Backend.Common.Interfaces.Services;
+using Backend.Common.Logic;
+using Backend.Common.Models;
+using Backend.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using System.Web;
 using System.Reflection;
-using System.Text.Json;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Web;
 
 
 namespace Backend.Service.BusinessLogic
@@ -42,7 +38,7 @@ namespace Backend.Service.BusinessLogic
     string Text);
 
     /// </inheritdoc/>
-    public partial class CvProcessingLogic : BaseLogic, ICvsProcessingLogic
+    public partial class CvService : BaseLogic, ICvService
     {
         [GeneratedRegex("[^0-9a-zA-Z_-]")]
         private static partial Regex matchInSetRegex();
@@ -57,6 +53,7 @@ namespace Backend.Service.BusinessLogic
         private OpenAIClient openAIClient; 
         private DocumentAnalysisClient documentAnalysisClient;
         private readonly IConfiguration _configuration;
+        private readonly IFileStorage _fileStorage;
 
         /// <summary>
         /// Gets by DI the dependeciees
@@ -65,7 +62,7 @@ namespace Backend.Service.BusinessLogic
         /// <param name="dataAccess"></param>
         /// <param name="configuration"></param>
         /// <param name="logger"></param>
-        public CvProcessingLogic(ISessionProvider sessionProvider, IDataAccess dataAccess, IConfiguration configuration, ILogger<ICvsProcessingLogic> logger) : base(sessionProvider, dataAccess, logger)
+        public CvService(ISessionProvider sessionProvider, IDataAccess dataAccess, IConfiguration configuration, ILogger<ICvService> logger, IFileStorage fileStorage) : base(sessionProvider, dataAccess, logger)
         {
             this.azureOpenAIApiEndpoint = configuration["AzureOpenAIApiEndpoint"];
             this.AzureOpenAIApiKey = configuration["AzureOpenAIApiKey"];
@@ -76,7 +73,7 @@ namespace Backend.Service.BusinessLogic
             this.azureDocumentInteligenceApiEndpoint = configuration["AzureDocumentInteligenceApiEndpoint"];
             this.AzureDocumentInteligenceApiKey = configuration["AzureDocumentInteligenceApiKey"];
             _configuration = configuration;
-
+            _fileStorage = fileStorage;
         }
 
 
@@ -86,7 +83,7 @@ namespace Backend.Service.BusinessLogic
         {
             try
             {
-                var token = this.dataAccess.GetSasToken("cv-procesados", 60);
+                var token = _fileStorage.GetSasToken("cv-procesados", 60);
                 var data = (await this.dataAccess.ReceivedCvs.GetAsync()).ToList();
                 foreach (var item in data)
                 {
@@ -122,17 +119,12 @@ namespace Backend.Service.BusinessLogic
                 string cvNoProceced = "cv-sin-procesar";
                 string cvProceced = "cv-procesados";
 
-
-
-
-                DataAccess.DataAccess dataAccess = new DataAccess.DataAccess(_configuration);
-
-                string uriCV = await dataAccess.CopyBlobAsync(filename, name, cvNoProceced, cvProceced);
+                string uriCV = await _fileStorage.CopyBlobAsync(filename, name, cvNoProceced, cvProceced);
 
                 this.logger.LogInformation($"Se ha movido el archivo del CV al contenedor {cvProceced} y se ha eliminado del contenedor: {cvNoProceced}");
 
 
-                var sasToken = this.dataAccess.GetSasToken(cvProceced, 60);
+                var sasToken = _fileStorage.GetSasToken(cvProceced, 60);
 
                 var blobUrl = $"{uriCV}?{sasToken}";
 

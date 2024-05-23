@@ -1,4 +1,6 @@
-﻿namespace Backend.Common.Interfaces.Services
+﻿using Azure;
+
+namespace Backend.Common.Interfaces.Services
 {
     public interface IFileStorage
     {
@@ -20,5 +22,15 @@
         /// <param name="extension"></param>
         /// <returns></returns>
         public Task<string> SaveFileAsyncAsync(string container, string folder, string fileName, Stream file, string contentType, string extension);
+
+        /// <summary>
+        /// Copy a blob from one container to another
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="newFileName"></param>
+        /// <param name="originalContainerName"></param>
+        /// <param name="newContainerName"></param>
+        /// <returns></returns>
+        public Task<string> CopyBlobAsync(string filename, string newFileName, string originalContainerName, string newContainerName);
     }
 }

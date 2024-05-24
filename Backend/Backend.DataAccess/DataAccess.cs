@@ -1,8 +1,4 @@
-﻿using Azure;
-using Azure.Storage;
-using Azure.Storage.Blobs;
-using Azure.Storage.Sas;
-using Backend.Common.Interfaces.DataAccess;
+﻿using Backend.Common.Interfaces.DataAccess;
 using Backend.Entities;
 using Backend.Models;
 using Microsoft.Extensions.Configuration;

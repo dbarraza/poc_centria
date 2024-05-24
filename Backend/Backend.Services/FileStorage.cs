@@ -74,6 +74,9 @@ namespace Backend.Services
         {
             try
             {
+                var bloblClient = _blobServiceClient.GetBlobContainerClient(newContainerName);
+                await bloblClient.CreateIfNotExistsAsync();
+
                 BlobContainerClient originalContainerClient = this._blobServiceClient.GetBlobContainerClient(originalContainerName);
                 BlobClient originalBlobClient = originalContainerClient.GetBlobClient(filename);
                 // Verificar que el blob original existe

@@ -1,8 +1,5 @@
 ﻿using Backend.Entities;
 using Backend.Models;
-using System;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace Backend.Common.Interfaces.DataAccess
 {

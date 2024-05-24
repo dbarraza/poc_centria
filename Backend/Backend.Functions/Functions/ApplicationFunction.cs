@@ -1,4 +1,6 @@
 using Backend.Common.Interfaces.Services;
+using Backend.Models.In;
+using HttpMultipartParser;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -27,17 +29,20 @@ namespace Backend.Functions.Functions
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        [Function("CreateApplication")]
-        [OpenApiOperation(operationId: "run", tags: new[] { "Application" }, Summary = "Create a new Application", Description = "Create a new Application", Visibility = OpenApiVisibilityType.Advanced)]
-        [OpenApiParameter(name: "name", In = ParameterLocation.Query, Required = true, Type = typeof(string), Summary = "Name of the application", Description = "Name of the application")]
+        [Function(nameof(CreateApplication))]
+        [OpenApiOperation(operationId: "run", tags: ["Application"], Summary = "Create a new Application", Description = "Create a new Application", Visibility = OpenApiVisibilityType.Advanced)]
+        [OpenApiRequestBody(contentType: "multipart/form-data", bodyType: typeof(ExcelUploadIn), Required = true, Description = "Document to upload")]
         public async Task<IActionResult> CreateApplication([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest request)
         {
             try
             {
                 _logger.LogInformation($"[ChatFunction:CreateApplication] - Creating a new application");
 
-                var name = request.Query["name"];
-                var response = await _applicationService.CreateApplicationAsync(name);
+                var body = await MultipartFormDataParser.ParseAsync(request.Body);
+                var file = body.Files[0];
+                var name = body.GetParameterValue("name");
+
+                var response = await _applicationService.CreateApplicationAsync(name, file.FileName, file.Data, file.ContentType);
 
                 _logger.LogInformation($"[ChatFunction:CreateApplication] - New application created with guid {response.Id}");
 

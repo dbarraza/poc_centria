@@ -1,6 +1,4 @@
-﻿using Azure;
-
-namespace Backend.Common.Interfaces.Services
+﻿namespace Backend.Common.Interfaces.Services
 {
     public interface IFileStorage
     {

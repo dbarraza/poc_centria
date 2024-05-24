@@ -9,11 +9,14 @@ namespace Backend.Services
     /// <inheritdoc/>
     public class ApplicationService : BaseLogic , IApplicationService
     {
-        public ApplicationService(ISessionProvider sessionProvider, IDataAccess dataAccess, ILogger<IApplicationService> logger) : base(sessionProvider, dataAccess, logger)
+        private readonly IExcelService _excelService;
+
+        public ApplicationService(ISessionProvider sessionProvider, IDataAccess dataAccess, ILogger<IApplicationService> logger, IExcelService excelService) : base(sessionProvider, dataAccess, logger)
         {
+            _excelService = excelService;
         }
 
-        public async Task<Application> CreateApplicationAsync(string name)
+        public async Task<Application> CreateApplicationAsync(string applicationName, string fileName, Stream data, string contentType)
         {
             try
             {
@@ -21,18 +24,24 @@ namespace Backend.Services
                 var application = new Application
                 {
                     Id = Guid.NewGuid(),
-                    Name = name,
+                    Name = applicationName,
                     CreatedAt = DateTime.UtcNow,
                     Status = ApplicationStatus.Created
                 };
                 await dataAccess.Applications.InsertAsync(application);
+
+                // Upload the file to the storage
+                var uri = await _excelService.UploadAsync(application.Id, fileName, data, contentType);
+
+                // Update the entity with the file uri
+                application.ExcelUrl = uri;
                 await dataAccess.SaveChangesAsync();
 
                 return application;
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, $"[ApplicationService:CreateApplicationAsync] - An error occurred while creating a new application with name: {name}. Exception:{ex.Message}");
+                logger.LogError(ex, $"[ApplicationService:CreateApplicationAsync] - An error occurred while creating a new application with name: {applicationName}. Exception:{ex.Message}");
                 throw;
             }
         }

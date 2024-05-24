@@ -37,33 +37,6 @@ namespace Backend.Functions.Functions
         }
 
         /// <summary>
-        /// Upload a document to process
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        [Function(nameof(UploadDocument))]
-        [OpenApiOperation(operationId: "run", tags: ["Prefilter"], Summary = "Upload document to process", Description = "Upload document to process", Visibility = OpenApiVisibilityType.Advanced)]
-        [OpenApiSecurity("X-Functions-Key", SecuritySchemeType.ApiKey, Name = "x-functions-key", In = OpenApiSecurityLocationType.Header, Description = "The function key to access the API")]
-        [OpenApiRequestBody(contentType: "multipart/form-data", bodyType: typeof(ExcelUploadIn), Required = true, Description = "Document to upload")]
-        public async Task<HttpResponseData> UploadDocument([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "documents")] HttpRequestData request)
-        {
-            try
-            {
-                var body = await MultipartFormDataParser.ParseAsync(request.Body);
-                var file = body.Files[0];
-                var applicationId = Guid.Parse(body.GetParameterValue("applicationId"));
-
-                var result = await _excelService.UploadAsync(applicationId, file.FileName, file.Data, file.ContentType);
-                return await request.CreateResponseAsync(result, null);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error uploading document");
-                return request.CreateResponse(HttpStatusCode.InternalServerError);
-            }
-        }
-
-        /// <summary>
         /// Process a new excel document
         /// </summary>
         /// <param name="file"></param>
@@ -75,13 +48,11 @@ namespace Backend.Functions.Functions
         {
             try
             {
-                using var blobStreamReader = new StreamReader(file);
-                var content = await blobStreamReader.ReadToEndAsync();
-                _logger.LogInformation($"C# Blob trigger function Processed blob\n Name: {filename} \n Data: {content}");
+                await _excelService.ProcessFileAsync(folder, filename, file);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[ProcessFileFromStorageAsync:ProcessFileFromStorageAsync] - Error processing document {ex.Message}");
+                _logger.LogError(ex, $"[ExcelFunction:ProcessFileFromStorageAsync] - Error processing document {ex.Message}");
             }
         }
     }

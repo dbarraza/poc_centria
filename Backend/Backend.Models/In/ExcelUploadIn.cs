@@ -8,8 +8,8 @@
         public byte[] File { get; set; }
 
         /// <summary>
-        /// Application Id
+        /// The name of the application process
         /// </summary>
-        public Guid ApplicationId { get; set; }
+        public string Name{ get; set; }
     }
 }

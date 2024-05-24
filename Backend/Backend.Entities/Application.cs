@@ -14,23 +14,23 @@
     public enum ApplicationStatus
     {
         /// <summary>
+        /// Error ocurred
+        /// </summary>
+        Error = -1,
+
+        /// <summary>
         /// Proecess just created
         /// </summary>
         Created = 1,
 
         /// <summary>
-        /// Excel is being processed
+        /// Candidates loaded successfully
         /// </summary>
-        Pending = 2,
-
-        /// <summary>
-        /// Excel already processed and loaded successfully
-        /// </summary>
-        BaseLoaded = 3,
+        CandidatesLoaded = 2,
 
         /// <summary>
         /// Candidates prefiltered successfully
         /// </summary>
-        Prefiltered = 4
+        Prefiltered = 3
     }
 }

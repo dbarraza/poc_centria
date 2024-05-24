@@ -1,7 +1,9 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
+using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
+using Azure.Search.Documents.Models;
 using Azure.Storage.Blobs;
 using Backend.Common.Interfaces;
 using Backend.Common.Interfaces.DataAccess;
@@ -11,6 +13,7 @@ using Backend.Entities;
 using Backend.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using OfficeOpenXml;
 
 namespace Backend.Services
 {
@@ -22,7 +25,10 @@ namespace Backend.Services
 
         private const int SAS_TOKEN_EXPIRATION_IN_MINUTES = 60;
         private readonly int _modelDimensions = 1536;
+
         private readonly string _pendingExcelContainer;
+        private readonly string _processedExcelContainer;
+        private readonly string _errorExcelContainer;
 
         private readonly Uri _searchEndpoint;
         private readonly string _searchKey;
@@ -39,6 +45,9 @@ namespace Backend.Services
         {
             _fileStorage = fileStorage;
             _pendingExcelContainer = configuration.GetValue<string>("blob:ExcelPendingFolder");
+            _processedExcelContainer = configuration.GetValue<string>("blob:ExcelProcessedFolder");
+            _errorExcelContainer = configuration.GetValue<string>("blob:ExcelErrorFolder");
+
             _indexName = configuration.GetValue<string>("search:IndexName");
             _vectorSearchProfileName = configuration.GetValue<string>("search:VectorSearchProfileName");
             _vectorSearchHnswConfig = configuration.GetValue<string>("search:VectorSearchHnswConfig");
@@ -54,25 +63,17 @@ namespace Backend.Services
         }
 
         /// <inheritdoc/>
-        public async Task<Result<string>> UploadAsync(Guid applicationId, string fileName, Stream fileStream, string contentType)
+        public async Task<string> UploadAsync(Guid applicationId, string fileName, Stream fileStream, string contentType)
         {
             try
             {
-                // Get Application Entity
-                var application = await dataAccess.Applications.GetAsync(applicationId);
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
 
                 // Updload file to the storage
                 var sasToken = _fileStorage.GetSasToken(_pendingExcelContainer, SAS_TOKEN_EXPIRATION_IN_MINUTES);
-                var uri = await _fileStorage.SaveFileAsyncAsync(_pendingExcelContainer, applicationId.ToString(),  fileName, fileStream, contentType, Path.GetExtension(fileName));
+                var uri = await _fileStorage.SaveFileAsyncAsync(_pendingExcelContainer, applicationId.ToString(), fileNameWithoutExtension, fileStream, contentType, Path.GetExtension(fileName));
 
-                // Update entity with the uri
-                application.ExcelUrl = uri;
-                application.Status = ApplicationStatus.Pending;
-                dataAccess.Applications.Update(application);
-                await dataAccess.SaveChangesAsync();
-
-                // Create Response
-                return new Result<string> { Success = true, Message = "Document uploaded successfully.", Data = uri };
+                return uri;
             }
             catch (Exception ex)
             {
@@ -81,14 +82,64 @@ namespace Backend.Services
             }
         }
 
-        public async Task ProcessFileAsync(Guid applicationId, string fileName)
+        /// <inheritdoc/>
+        public async Task ProcessFileAsync(string applicationId, string fileName, Stream file)
         {
             // Get Application Entity
-            var application = await dataAccess.Applications.GetAsync(applicationId);
+            var applicationGuid = Guid.Parse(applicationId);
+            var application = await dataAccess.Applications.GetAsync(applicationGuid);
 
-            Uri fileUri = GetFileUri(fileName, _pendingExcelContainer);            
+            try
+            {
+                var _openAIClient = new OpenAIClient(_openAIEndpoint, new AzureKeyCredential(_openAIKey));
 
-            var openAIClient = new OpenAIClient(_openAIEndpoint, new AzureKeyCredential(_openAIKey));
+                // Create the index
+                await CreateSearchIndexAsync();
+
+                // Get candidates from the excel file
+                var candidates = GetCandidates(applicationId, file, fileName);
+                var totalCandidates = candidates.Count();
+
+                var count = 0;
+                foreach (var candidate in candidates)
+                {
+                    logger.LogInformation($"[ExcelService:ProcessFileAsync] - Embedding content for candidate {count++} of {totalCandidates}");
+
+                    // Get the formItem content embeddings
+                    EmbeddingsOptions contentEmbeddingsOptions = new(_openAIModelName, new string[] { CleanUpTextForEmbeddings(candidate.Content) });
+                    Embeddings contentEmbeddings = await _openAIClient.GetEmbeddingsAsync(contentEmbeddingsOptions);
+                    ReadOnlyMemory<float> contentVector = contentEmbeddings.Data[0].Embedding;
+
+                    candidate.ContentVector = contentVector.ToArray();
+                }
+
+                logger.LogInformation($"[ExcelService:ProcessFileAsync] - Start Indexing candidatos for application {applicationId} - date {DateTime.Now}");
+                SearchClient searchClient = new(_searchEndpoint, _indexName, new AzureKeyCredential(_searchKey));
+                await searchClient.IndexDocumentsAsync(IndexDocumentsBatch.Upload(candidates));
+                logger.LogInformation($"[ExcelService:ProcessFileAsync] - End Indexing candidatos for application {applicationId} - date {DateTime.Now}");
+                
+                // Move the file to the processed folder
+                var blobFileName = $"{applicationId}/{fileName}";
+                var newUri = await _fileStorage.CopyBlobAsync(blobFileName, blobFileName, _pendingExcelContainer, _processedExcelContainer);
+
+                // Update Appication Status
+                application.Status = ApplicationStatus.CandidatesLoaded;
+                application.ExcelUrl = newUri;
+                dataAccess.Applications.Update(application);
+                await dataAccess.SaveChangesAsync();
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex, $"[ExcelService:ProcessFileAsync] - Error processing document {ex.Message}");
+
+                // Move the file to the error folder
+                var blobFileName = $"{applicationId}/{fileName}";
+                var newUri = await _fileStorage.CopyBlobAsync(blobFileName, blobFileName, _pendingExcelContainer, _errorExcelContainer);
+
+                application.Status = ApplicationStatus.Error;
+                application.ErrorMessage = ex.Message;
+                dataAccess.Applications.Update(application);
+            }
         }
 
         /// <summary>
@@ -97,7 +148,7 @@ namespace Backend.Services
         /// <param name="fileName"></param>
         /// <param name="containerName"></param>
         /// <returns></returns>
-        private Uri GetFileUri(string fileName, string containerName)
+        private Uri GetFileUri(string folder, string fileName, string containerName)
         {
             // Get the SAS token for the container
             string sasToken = _fileStorage.GetSasToken(containerName, SAS_TOKEN_EXPIRATION_IN_MINUTES);
@@ -107,7 +158,7 @@ namespace Backend.Services
             {
                 Scheme = "https", // Use HTTPS scheme for secure communication
                 Host = $"{_blobServiceClient.AccountName}.blob.core.windows.net", // Specify the Azure Blob Storage account host
-                Path = $"{containerName}/{fileName}", // Combine the container name and file name to form the path
+                Path = $"{folder}/{containerName}/{fileName}", // Combine the container name and file name to form the path
                 Query = sasToken // Append the SAS token as query parameter to the URI
             };
 
@@ -115,10 +166,166 @@ namespace Backend.Services
         }
 
         /// <summary>
+        /// Get the candidates collection from the excel file
+        /// </summary>
+        /// <param name="fileStream"></param>
+        /// <returns></returns>
+        private IEnumerable<CandidateModel> GetCandidates(string applicationId, Stream fileStream, string fileName)
+        {
+            try
+            {
+                logger.LogInformation($"[ExcelService:GetCandidates] - Reading the excel file {fileName} for application {applicationId}");
+                var candidates = new List<CandidateModel>();
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                // Cargamos el archivo Excel
+                using (var package = new ExcelPackage(fileStream))
+                {
+                    // Accedemos a la primera hoja del libro
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+
+                    // Obtenemos el número total de filas y columnas
+                    int rowCount = worksheet.Dimension.Rows;
+                    int colCount = worksheet.Dimension.Columns;
+
+                    int idColumnIndex = -1;
+                    int nameColumnIndex = -1;
+                    int emailColumnIndex = -1;
+                    int salaryExpectationColumnIndex = -1;
+                    int availabilityForWorkColumnIndex = -1;
+                    int policeRecordColumnIndex = -1;
+                    int criminalRecordColumnIndex = -1;
+                    int judicialRecordColumnIndex = -1;
+                    int consentColumnIndex = -1;
+                    int hasFamiliarColumnIndex = -1;
+
+                    // Recorremos la primera fila para buscar los encabezados
+                    for (int col = 1; col <= colCount; col++)
+                    {
+                        string columnHeader = worksheet.Cells[1, col].Value?.ToString(); // Obtenemos el valor del encabezado
+
+                        // Comparamos el valor del encabezado con los campos que buscamos
+                        if (columnHeader == "ID")
+                        {
+                            idColumnIndex = col;
+                        }
+                        else if (columnHeader == "Nombres y Apellidos Completos")
+                        {
+                            nameColumnIndex = col;
+                        }
+                        else if (columnHeader == "Correo Electrónico de Contacto")
+                        {
+                            emailColumnIndex = col;
+                        }
+                        else if (columnHeader == "Expectativa Salarial (bruto mensual en Nuevos Soles):")
+                        {
+                            salaryExpectationColumnIndex = col;
+                        }
+                        else if (columnHeader == "¿Cuál es tu disponibilidad para ingresar a trabajar?")
+                        {
+                            availabilityForWorkColumnIndex = col;
+                        }
+                        else if (columnHeader == "¿Registras Antecedentes Policiales? (solo es informativo)")
+                        {
+                            policeRecordColumnIndex = col;
+                        }
+                        else if (columnHeader == "¿Registras Antecedentes Penales según lo dispuesto por la ley N°29607?")
+                        {
+                            criminalRecordColumnIndex = col;
+                        }
+                        else if (columnHeader == "¿Registras Antecedentes  Judiciales?")
+                        {
+                            judicialRecordColumnIndex = col;
+                        }
+                        else if (columnHeader.Contains("Dentro del proceso de selección, Centria en su calidad de potencial empleador, podrá realizar la consulta de algunos antecedentes del postulante incluidos aquellos brindados por centrales"))
+                        {
+                            consentColumnIndex = col;
+                        }
+                        else if (columnHeader == "¿Cuentas con vínculos y/o relación con algún miembro que actualmente labore en CENTRIA? (solo es informativo)")
+                        {
+                            hasFamiliarColumnIndex = col;
+                        }
+                    }
+
+                    // Recorremos las filas restantes para obtener los valores
+                    for (int row = 1 + 1; row < rowCount; row++)
+                    {
+                        var candidate = new CandidateModel();
+
+                        for (int col = 1; col <= colCount; col++)
+                        {
+                            candidate.ApplicationId = applicationId.ToString();
+
+                            // Accedemos al valor de la celda actual
+                            string cellValue = worksheet.Cells[row, col].Value?.ToString();
+
+                            if (col == idColumnIndex)
+                            {
+                                candidate.CandidateId = cellValue;
+                            }
+                            else if (col == nameColumnIndex)
+                            {
+                                candidate.Name = cellValue;
+                            }
+                            else if (col == emailColumnIndex)
+                            {
+                                candidate.Email = cellValue;
+                            }
+                            else if (col == salaryExpectationColumnIndex)
+                            {
+                                candidate.SalaryExpectation = cellValue;
+                            }
+                            else if (col == availabilityForWorkColumnIndex)
+                            {
+                                candidate.AvailabilityForWork = cellValue;
+                            }
+                            else if (col == policeRecordColumnIndex)
+                            {
+                                candidate.PoliceRecord = cellValue;
+                            }
+                            else if (col == criminalRecordColumnIndex)
+                            {
+                                candidate.CriminalRecord = cellValue;
+                            }
+                            else if (col == judicialRecordColumnIndex)
+                            {
+                                candidate.JudicialRecord = cellValue;
+                            }
+                            else if (col == consentColumnIndex)
+                            {
+                                candidate.Consent = cellValue;
+                            }
+                            else if (col == hasFamiliarColumnIndex)
+                            {
+                                candidate.HasFamiliar = cellValue;
+                            }
+
+                            else
+                            {
+                                string columnHeader = worksheet.Cells[1, col].Value?.ToString();
+                                candidate.Content += $"{columnHeader} : {cellValue} | ";
+                            }
+                        }
+                        candidates.Add(candidate);
+                    }
+                }
+
+                logger.LogInformation($"[ExcelService:GetCandidates] - Candidates readed from the excel file {fileName} for application {applicationId}");
+                return candidates;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"[ExcelService:GetCandidates] - Error reading the excel file {fileName} for application {applicationId}. {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Create a search index with a vector field and a vector search profile
         /// </summary>
         /// <returns></returns>
-        private async Task CreateSearchIndex(string applicationId)
+        private async Task CreateSearchIndexAsync()
         {
             var searchIndex = new SearchIndex(_indexName)
             {
@@ -178,5 +385,20 @@ namespace Backend.Services
             SearchIndexClient indexClient = new(_searchEndpoint, new AzureKeyCredential(_searchKey));
             await indexClient.CreateOrUpdateIndexAsync(searchIndex);
         }
+
+        /// <summary>
+        /// Clean up the text for embeddings
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private static string CleanUpTextForEmbeddings(string text)
+        {
+            var result = text;
+            result = result.Replace("..", ".");
+            result = result.Replace(". .", ".");
+            result = result.Replace("\n", "");
+            return result;
+        }
+
     }
 }

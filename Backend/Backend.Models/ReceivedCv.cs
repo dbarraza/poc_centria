@@ -15,7 +15,7 @@ namespace Backend.Models
 
         public string CandidateEmail { get; set; }
 
-        public string Calification { get; set; }
+        public int Calification { get; set; }
 
         public string Explanation { get; set; }
 

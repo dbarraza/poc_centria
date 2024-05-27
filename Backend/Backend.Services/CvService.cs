@@ -16,6 +16,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
+using Newtonsoft.Json.Linq;
 
 
 namespace Backend.Service.BusinessLogic
@@ -161,45 +162,35 @@ namespace Backend.Service.BusinessLogic
                 trabajando con big data, técnicas y herramientas modernas de análisis de datos; y con una sólida comprensión de los fundamentos matemáticos y estadísticos. \r\n\r\nGCP/
                 Power BI intermedio - avanzado / Python ";
 
-                string calificationOfPostulant = @"Eres un asistente experto en Recursos Humanos y selección de Personal. Teniendo la información del puesto buscado, 
-                tenes la misión de calificar a un postulante segun la información que se extrajo de su currículum. El puntaje tiene que se de 0 a 100, en donde 0 es que el candidato no tiene ninguna
-                capacidad para ocupar el puesto buscado y 100 indica que es el candidato ideal para ese puesto. Además del puntaje, necesito una breve explicación de por qué se le asignó ese puntaje.
-                Necesito la respuesta en formato Json en la que se informe los siguientes campos. ""Puesto Buscado"", ""Nombre del postulante"", ""Correo del postulante"", ""Puntaje"" y ""Explicación"" ";
+                string calificationOfPostulant = @"Eres un asistente experto en Recursos Humanos y selección de Personal. Desde Centria estamos buscando al postulante ideal para un puesto de trabajo.
+                Teniendo la información del puesto buscado, tenes la misión de calificar a un postulante segun la información que se extrajo de su currículum. El puntaje tiene que se de 0 a 100,
+                en donde 0 es que el candidato no tiene ninguna capacidad para ocupar el puesto buscado y 100 indica que es el candidato ideal para ese puesto y cumple con todos los requisitos del puesto. 
+                Para que el puntaje sirva como medida, necesito que penalices cada requerimiento que esta en la información del puesto buscado, que no se encuentre en la información del postulante que te voy a comaprtir. 
+                Además del puntaje, necesito una breve explicación de por qué se le asignó ese puntaje. Necesito la respuesta en formato Json y que solo traiga los siguientes campos. ""Puesto Buscado"", ""Nombre del postulante"", 
+                ""Correo del postulante"", ""Puntaje"" y ""Explicacion"" ";
 
                 string promptPdf = "Determine la información necesaria del siguiente archivo pdf extraida del correo electronico:";
-                string completionPdf = $"{promptPdf} \n Informacion del puesto buscado: {jobInformation} \n Informacion del postulante: \n{allContent}";
+                string completionPdf = $"{promptPdf} \n Información del puesto buscado: {jobInformation} \n Información del postulante: \n{allContent}";
 
                 var responseCalificationCv = await NonStreamingChat(completionPdf, calificationOfPostulant);
 
                 string responseCalificationCvText = responseCalificationCv.Choices[0].Message.Content;
                 this.logger.LogInformation($"respuesta extracción generada por openai: \n{responseCalificationCvText}");
 
-                // Define las expresiones regulares para extraer los datos
-                string jobNamePattern = "\"Puesto Buscado\": \"(.*?)\"";
-                string candidateNamePattern = "\"Nombre del postulante\": (.*?),";
-                string candidateEmailPattern = "\"Correo del postulante\": (.*?),";
-                string calificationPattern = "\"Puntaje\": (.*?),";
-                string explanationPattern = "\"Explicación\": (.*?)";
+
+                // Analiza el JSON
+                var jsonObject = JObject.Parse(responseCalificationCvText);
+
+                // Extrae los valores
+                string jobName = (string)jsonObject["Puesto Buscado"];
+                string candidateName = (string)jsonObject["Nombre del postulante"];
+                string candidateEmail = (string)jsonObject["Correo del postulante"];
+                int calification = (int)jsonObject["Puntaje"];
+                string explanation = (string)jsonObject["Explicacion"];
+
+                //this.logger.LogInformation($"Valor de explanation: {explanation}");
+
                 
-
-                // Extrae los datos
-                string jobName = Regex.Match(responseCalificationCvText, jobNamePattern).Groups[1].Value;
-                string candidateName = Regex.Match(responseCalificationCvText, candidateNamePattern).Groups[1].Value;
-                string candidateEmail = Regex.Match(responseCalificationCvText, candidateEmailPattern).Groups[1].Value;
-                string calification = Regex.Match(responseCalificationCvText, calificationPattern).Groups[1].Value;
-                string explanation = Regex.Match(responseCalificationCvText, explanationPattern).Groups[1].Value;
-
-
-                // Crea un nuevo objeto JSON con los datos extraídos
-                JObject jsonPdf = new JObject
-                {
-                    ["Puesto Buscado"] = jobName,
-                    ["Nombre del candidato"] = candidateName,
-                    ["Correo del candidato"] = candidateEmail,
-                    ["Puntaje"] = calification,
-                    ["Explicacion"] = explanation
-                };
-
                 await this.dataAccess.ReceivedCvs.InsertAsync(new ReceivedCv
                 {
                     JobName = jobName,

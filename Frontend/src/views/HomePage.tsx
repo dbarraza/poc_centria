@@ -131,7 +131,7 @@ class HomePage extends React.Component<any, HomePageState>  {
                 backgroundColor: tokens.colorNeutralBackground4,
                 gridTemplateColumns: "auto"
             }}>
-                {/* Formulario para subir archivo */}
+                {/* Formulario para crear un nuevo proceso de selcción */}
                 {this.state.showForm && (
                     <div className="component-container">
                         {this.state.showAlert && (<AlertMessage
@@ -139,7 +139,7 @@ class HomePage extends React.Component<any, HomePageState>  {
                         />)}
                         {!this.state.showAlert && (<div>
                             <div className="divTittle">
-                                <h1>Subir Archivos</h1>
+                                <h1>Nuevo Proceso de selección</h1>
                             </div>
                             <h3>Por favor ingrese el nombre de la acción y el archivo</h3>
                             <form onSubmit={this.handleSubmit} encType="multipart/form-data">
@@ -188,21 +188,18 @@ class HomePage extends React.Component<any, HomePageState>  {
                             <a className="field-link" href={this.state.detailResponse.data.excelUrl}>{this.state.detailResponse.data.excelUrl}</a>
                         </div>
                         <div>
-                            <button onClick={() => this.changeDetail()}>Listado de acciones</button>
+                            <button onClick={() => this.changeDetail()}>Procesos de selección</button>
                         </div>
                     </div>
 
                 )}
-                {/* Lista de acciones */}
+                {/* Pantalla Inicial - Lista de Procesos de selección */}
                 {this.state.showTable && (
 
                     <div className="component-container">
 
                         <div className="divTittle">
-                            <h1>Listado de acciones</h1>
-                        </div>
-                        <div className="btn-with-margin">
-                            <button onClick={this.changeForm}>Subir Archivos</button>
+                            <h1>Procesos de selección</h1>
                         </div>
                         <table className="lista">
                             <thead>
@@ -230,6 +227,10 @@ class HomePage extends React.Component<any, HomePageState>  {
                             ))}
                             </tbody>
                         </table>
+                        <div className="btn-with-margin">
+                            <button onClick={this.changeForm}>Nuevo Proceso</button>
+                        </div>
+                        <br/>
                     </div>
                 )}
             </div>

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Backend.Models
+﻿namespace Backend.Models
 {
     /// <summary>
     /// Common properties for all models

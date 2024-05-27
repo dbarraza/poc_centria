@@ -5,6 +5,7 @@ using Azure.Storage.Sas;
 using Backend.Common.Interfaces.Services;
 using Microsoft.Extensions.Configuration;
 using Azure;
+using Microsoft.Extensions.Logging;
 
 namespace Backend.Services
 {
@@ -12,11 +13,13 @@ namespace Backend.Services
     {
         private readonly string _storageConnectionString;
         private readonly BlobServiceClient _blobServiceClient;
+        private readonly ILogger<FileStorage> _logger;
 
-        public FileStorage(IConfiguration configuration)
+        public FileStorage(IConfiguration configuration, ILogger<FileStorage> logger)
         {
             _storageConnectionString = configuration.GetValue<string>("StorageConnectionString");
             _blobServiceClient = new BlobServiceClient(_storageConnectionString);
+            _logger = logger;
         }
 
         // <inheritdoc />
@@ -101,13 +104,13 @@ namespace Backend.Services
             catch (RequestFailedException ex)
             {
                 // Manejo de excepciones específicas de Azure.Storage.Blobs
-                Console.WriteLine($"Error al copiar el blob: {ex.Message}");
+                _logger.LogError(ex, $"[FileStorage:CopyBlobAsync] - Error al copiar el blob: {ex.Message}");
                 throw;
             }
             catch (Exception ex)
             {
                 // Otros tipos de excepciones
-                Console.WriteLine($"Error desconocido al copiar el blob: {ex.Message}");
+                _logger.LogError(ex, $"[FileStorage:CopyBlobAsync] - Error desconocido al copiar el blob: {ex.Message}");
                 throw;
             }
         }

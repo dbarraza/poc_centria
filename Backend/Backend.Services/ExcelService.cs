@@ -119,8 +119,10 @@ namespace Backend.Services
                 logger.LogInformation($"[ExcelService:ProcessFileAsync] - End Indexing candidatos for application {applicationId} - date {DateTime.Now}");
                 
                 // Move the file to the processed folder
+                logger.LogInformation($"[ExcelService:ProcessFileAsync] - Moving the file {fileName} to the processed folder for application {applicationId}. From {_pendingExcelContainer} to {_processedExcelContainer}");
                 var blobFileName = $"{applicationId}/{fileName}";
                 var newUri = await _fileStorage.CopyBlobAsync(blobFileName, blobFileName, _pendingExcelContainer, _processedExcelContainer);
+                logger.LogInformation($"[ExcelService:ProcessFileAsync] - File {fileName} moved to the processed folder for application {applicationId}. New URI: {newUri}");
 
                 // Update Appication Status
                 application.Status = ApplicationStatus.CandidatesLoaded;
@@ -133,8 +135,9 @@ namespace Backend.Services
                 logger.LogError(ex, $"[ExcelService:ProcessFileAsync] - Error processing document {ex.Message}");
 
                 // Move the file to the error folder
+                logger.LogInformation($"[ExcelService:ProcessFileAsync] - Moving the file {fileName} to the error folder for application {applicationId}. From {_pendingExcelContainer} to {_errorExcelContainer}");
                 var blobFileName = $"{applicationId}/{fileName}";
-                var newUri = await _fileStorage.CopyBlobAsync(blobFileName, blobFileName, _pendingExcelContainer, _errorExcelContainer);
+                await _fileStorage.CopyBlobAsync(blobFileName, blobFileName, _pendingExcelContainer, _errorExcelContainer);
 
                 application.Status = ApplicationStatus.Error;
                 application.ErrorMessage = ex.Message;
@@ -274,7 +277,7 @@ namespace Backend.Services
                             }
                             else if (col == salaryExpectationColumnIndex)
                             {
-                                candidate.SalaryExpectation = cellValue;
+                                candidate.SalaryExpectation = int.Parse(cellValue);
                             }
                             else if (col == availabilityForWorkColumnIndex)
                             {
@@ -337,7 +340,7 @@ namespace Backend.Services
                     new SearchableField(nameof(CandidateModel.Name)) { IsFilterable = true, IsSortable = true },
                     new SearchableField(nameof(CandidateModel.Email)) { IsFilterable = true, IsSortable = true },
                     new SearchableField(nameof(CandidateModel.Content)) { IsFilterable = true, IsSortable = true, IsFacetable = true, AnalyzerName = "es.Microsoft" },
-                    new SearchableField(nameof(CandidateModel.SalaryExpectation)) { IsFilterable = true, IsSortable = true, IsFacetable = true},
+                    new SimpleField(nameof(CandidateModel.SalaryExpectation), SearchFieldDataType.Int32) { IsFilterable = true, IsSortable = true, IsFacetable = true },
                     new SearchableField(nameof(CandidateModel.AvailabilityForWork)) { IsFilterable = true, IsSortable = true, IsFacetable = true},
                     new SearchableField(nameof(CandidateModel.PoliceRecord)) { IsFilterable = true, IsSortable = true, IsFacetable = true},
                     new SearchableField(nameof(CandidateModel.CriminalRecord)) { IsFilterable = true, IsSortable = true, IsFacetable = true},

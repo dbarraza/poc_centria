@@ -1,6 +1,6 @@
-﻿namespace Backend.Models
+﻿namespace Backend.Models.Out
 {
-    public class CandidateModel
+    public class CandidateModelOut
     {
         public string ApplicationId { get; set; }
         public string CandidateId { get; set; }
@@ -14,7 +14,5 @@
         public string JudicialRecord { get; set; }
         public string Consent { get; set; }
         public string HasFamiliar { get; set; }
-
-        public ReadOnlyMemory<float> ContentVector { get; set; }
     }
 }

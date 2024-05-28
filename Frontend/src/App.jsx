@@ -19,11 +19,11 @@ const App = ({ instance }) => {
   return (
     <div className="App">
       <FluentProvider theme={teamsLightTheme}>
-        <MsalProvider instance={instance}>
+        {/* <MsalProvider instance={instance}> */}
           <PageLayout>
             <Pages />
           </PageLayout>
-        </MsalProvider>
+        {/* </MsalProvider> */}
       </FluentProvider>
     </div>
   );

@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
 using Backend.Common.Interfaces;
 using Backend.Common.Interfaces.DataAccess;
 using Backend.Common.Interfaces.Services;
@@ -116,7 +117,7 @@ namespace Backend.Services
         }
 
         /// <inheritdoc/>
-        public async Task<Result<IEnumerable<CandidateModelOut>>> PrefilterCandidatesAsync(Guid applicationId, string minSalaryExpect, string maxSalaryExpect, string policeRecord, string criminalRecord, string judicialRecord, string consent, string hasFamiliar, string query)
+        public async Task<Result<IEnumerable<CandidateFilteredModelOut>>> PrefilterCandidatesAsync(Guid applicationId, string minSalaryExpect, string maxSalaryExpect, string policeRecord, string criminalRecord, string judicialRecord, string consent, string hasFamiliar, string query)
         {
             try
             {
@@ -173,48 +174,74 @@ namespace Backend.Services
                 var searchOptions = new SearchOptions
                 {
                     Filter = filterQuery,
-                    Size = 1000,
+                    Size = 15,
                     IncludeTotalCount = true,
                     Select =
                     {
-                        nameof(CandidateModel.ApplicationId),
-                        nameof(CandidateModel.CandidateId),
-                        nameof(CandidateModel.Name),
-                        nameof(CandidateModel.Email),
-                        nameof(CandidateModel.SalaryExpectation),
-                        nameof(CandidateModel.AvailabilityForWork),
-                        nameof(CandidateModel.PoliceRecord),
-                        nameof(CandidateModel.CriminalRecord),
-                        nameof(CandidateModel.JudicialRecord),
-                        nameof(CandidateModel.Consent),
-                        nameof(CandidateModel.HasFamiliar)
-                    }
+                        nameof(CandidateFilteredModelOut.ApplicationId),
+                        nameof(CandidateFilteredModelOut.CandidateId),
+                        nameof(CandidateFilteredModelOut.Name),
+                        nameof(CandidateFilteredModelOut.Email),
+                        nameof(CandidateFilteredModelOut.SalaryExpectation),
+                        nameof(CandidateFilteredModelOut.AvailabilityForWork),
+                        nameof(CandidateFilteredModelOut.PoliceRecord),
+                        nameof(CandidateFilteredModelOut.CriminalRecord),
+                        nameof(CandidateFilteredModelOut.JudicialRecord),
+                        nameof(CandidateFilteredModelOut.Consent),
+                        nameof(CandidateFilteredModelOut.HasFamiliar),
+                        nameof(CandidateFilteredModelOut.Content)
+                    },
+                    // TODO: validar
+                    //QueryType = SearchQueryType.Semantic,
+                    //SemanticSearch = new SemanticSearchOptions
+                    //{
+                    //    SemanticConfigurationName = "cv-semantic-config",
+                    //    QueryCaption = new QueryCaption(QueryCaptionType.Extractive)
+                    //}
                 };
+
+                var searchQuery = string.IsNullOrEmpty(query) ? "*" : $"\"{query}\"";
 
                 logger.LogInformation($"[ApplicationService:PrefilterCandidatesAsync] - Search query: {filterQuery}");
 
                 // Ejecutar la búsqueda
-                var queryResponse = await searchClient.SearchAsync<CandidateModel>("*", searchOptions);
-                var queryResults = queryResponse.Value.GetResults().Select(result => result.Document).ToList();
+                var queryResponse = await searchClient.SearchAsync<CandidateModel>(searchQuery, searchOptions);
+                var queryResults = queryResponse.Value.GetResults().ToList();
 
-                var candidatesModel = queryResults.Select(x => new CandidateModelOut
+                var candidatesModel = queryResults.Select(result =>
                 {
-                    ApplicationId = x.ApplicationId,
-                    CandidateId = x.CandidateId,
-                    Name = x.Name,
-                    Email = x.Email,
-                    SalaryExpectation = x.SalaryExpectation,
-                    AvailabilityForWork = x.AvailabilityForWork,
-                    PoliceRecord = x.PoliceRecord,
-                    CriminalRecord = x.CriminalRecord,
-                    JudicialRecord = x.JudicialRecord,
-                    Consent = x.Consent,
-                    HasFamiliar = x.HasFamiliar
+                    //var highlights = result.SemanticSearch.Captions.FirstOrDefault()?.Text;
+                    var document = result.Document;
+
+                    var extractedHighlights = string.Empty;
+                    if (!string.IsNullOrEmpty(document.Content))
+                    {
+                        if (document.Content.Replace(" ", "").Contains(query.Replace(" ", "")))
+                        {
+                            extractedHighlights = query;
+                        }
+                    }
+
+                    return new CandidateFilteredModelOut
+                    {
+                        ApplicationId = document.ApplicationId,
+                        CandidateId = document.CandidateId,
+                        Name = document.Name,
+                        Email = document.Email,
+                        SalaryExpectation = document.SalaryExpectation,
+                        AvailabilityForWork = document.AvailabilityForWork,
+                        PoliceRecord = document.PoliceRecord,
+                        CriminalRecord = document.CriminalRecord,
+                        JudicialRecord = document.JudicialRecord,
+                        Consent = document.Consent,
+                        HasFamiliar = document.HasFamiliar,
+                        Highlights = extractedHighlights
+                    };
                 });
 
                 logger.LogInformation($"[ApplicationService:PrefilterCandidatesAsync] - Found {queryResults.Count} candidates");
 
-                return new Result<IEnumerable<CandidateModelOut>> { Success = true, Data = candidatesModel };
+                return new Result<IEnumerable<CandidateFilteredModelOut>> { Success = true, Data = candidatesModel.OrderBy(x => x.CandidateId) };
             }
             catch (Exception ex)
             {

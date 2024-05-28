@@ -46,6 +46,6 @@ namespace Backend.Common.Interfaces.Services
         /// <param name="hasFamiliar"></param>
         /// <param name="query"></param>
         /// <returns></returns>
-        public Task<Result<IEnumerable<CandidateModelOut>>> PrefilterCandidatesAsync(Guid applicationId, string minSalaryExpect, string maxSalaryExpect, string policeRecord, string criminalRecord, string judicialRecord, string consent, string hasFamiliar, string query);
+        public Task<Result<IEnumerable<CandidateFilteredModelOut>>> PrefilterCandidatesAsync(Guid applicationId, string minSalaryExpect, string maxSalaryExpect, string policeRecord, string criminalRecord, string judicialRecord, string consent, string hasFamiliar, string query);
     }
 }

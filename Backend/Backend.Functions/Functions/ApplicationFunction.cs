@@ -121,7 +121,7 @@ namespace Backend.Functions.Functions
         [OpenApiParameter(name: "consent", In = ParameterLocation.Query, Required = false, Type = typeof(string), Summary = "consent", Description = "consent")]
         [OpenApiParameter(name: "hasFamiliar", In = ParameterLocation.Query, Required = false, Type = typeof(string), Summary = "hasFamiliar", Description = "hasFamiliar")]
         [OpenApiParameter(name: "query", In = ParameterLocation.Query, Required = false, Type = typeof(string), Summary = "query", Description = "query")]
-        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(CandidateModelOut[]), Summary = "Prefiltered candidates retrieved", Description = "The prefiltered candidates to be retrieved")]
+        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(CandidateFilteredModelOut[]), Summary = "Prefiltered candidates retrieved", Description = "The prefiltered candidates to be retrieved")]
         public async Task<HttpResponseData> GetPrefilteredCandidates([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "application/{applicationId}/prefiltered-candidates")] HttpRequestData request, 
             Guid applicationId,
             string minSalaryExpect,

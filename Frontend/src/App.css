@@ -156,6 +156,20 @@ input[type="file"]
   font-weight: bold;
 }
 
+.div-flex {
+  display: flex;
+}
+
+.field-input-label {
+  margin-right: 10px;
+  width: 15%;
+  font-weight: bold;
+}
+
+.field-input-text {
+  width: 20%;
+}
+
 .field-value {
   margin-left: 10px;
 }

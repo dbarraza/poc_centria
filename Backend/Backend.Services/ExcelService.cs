@@ -206,7 +206,7 @@ namespace Backend.Services
                     // Recorremos la primera fila para buscar los encabezados
                     for (int col = 1; col <= colCount; col++)
                     {
-                        string columnHeader = worksheet.Cells[1, col].Value?.ToString(); // Obtenemos el valor del encabezado
+                        string columnHeader = worksheet.Cells[1, col].Value?.ToString().Trim(); // Obtenemos el valor del encabezado
 
                         // Comparamos el valor del encabezado con los campos que buscamos
                         if (columnHeader == "ID")

@@ -1,7 +1,7 @@
-import React, {ChangeEvent, FormEvent} from "react";
+import React, { ChangeEvent, FormEvent } from "react";
 import axios from "axios";
-import {withMsal} from "@azure/msal-react";
-import {tokens} from "@fluentui/react-components";
+import { withMsal } from "@azure/msal-react";
+import { tokens } from "@fluentui/react-components";
 import AlertMessage from "../components/AlertMessage";
 
 // This page state
@@ -10,10 +10,11 @@ type HomePageState = {
     username: string,
     userMail: string,
     isAuthenticated: boolean,
-    showTable: boolean,
-    showForm: boolean,
+    showMain: boolean,
+    showNewProcess: boolean,
     showAlert: boolean,
-    showDetail: boolean,
+    showApplicationDetail: boolean,
+    showFilterCandidates: boolean,
     file: File | null,
     nameLoadFile: string,
     dataTable: any,
@@ -22,7 +23,7 @@ type HomePageState = {
 }
 
 // Page component
-class HomePage extends React.Component<any, HomePageState>  {
+class HomePage extends React.Component<any, HomePageState> {
     constructor(props: any) {
         super(props);
         this.state = {
@@ -30,29 +31,60 @@ class HomePage extends React.Component<any, HomePageState>  {
             userMail: "",
             username: "",
             isAuthenticated: false,
-            showTable: true,
-            showForm: false,
+            showMain: true,
+            showNewProcess: false,
             showAlert: false,
-            showDetail: false,
+            showApplicationDetail: false,
+            showFilterCandidates: false,
             file: null,
             nameLoadFile: "",
             dataTable: [],
             detailResponse: {},
             parsedFields: {}
         };
-        this.getData();
+        this.getApplications();
     }
 
-    public  getData = () => {
-        axios.get(process.env.REACT_APP_BACKEND_URI! + '/api/GetApplications?page=1&pageSize=100', {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(response => {
-            this.setState({ dataTable: response.data.data });
-        }).catch(error => {
-            console.error('Error al obtener datos:', error);
+    public changeStatesTofalse = () => {
+        this.setState({
+            showMain: false,
+            showNewProcess: false,
+            showAlert: false,
+            showApplicationDetail: false,
+            showFilterCandidates: false
         });
+    }
+
+    public showMain = () => {
+        alert('showMain');
+        this.getApplications();
+        this.changeStatesTofalse();
+        this.setState((prevState) => ({
+            showMain: true
+        }));
+    }
+
+    public showNewProcess = () => {
+        this.changeStatesTofalse();
+        this.setState((prevState) => ({
+            showNewProcess: true
+        }));
+    }
+
+    public showApplicationDetail = async (id?: string) => {
+        await this.getApplicationById(id);
+        this.changeStatesTofalse();
+        this.setState((prevState) => ({
+            showApplicationDetail: true
+        }));
+    }
+
+    public showFilterCandidates = async (id?: string) => {
+        await this.getApplicationById(id);
+        this.changeStatesTofalse();
+        this.setState((prevState) => ({
+            showFilterCandidates: true
+        }));
     }
 
     public handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -88,41 +120,34 @@ class HomePage extends React.Component<any, HomePageState>  {
         }
     };
 
-    public changeForm = () => {
-        if(this.state.showForm){
-            this.getData();
-        }
-        this.setState((prevState) => ({
-            showForm: !prevState.showForm,
-            showTable: !prevState.showTable,
-            showAlert: false
-        }));
+    public getApplications = () => {
+        axios.get(process.env.REACT_APP_BACKEND_URI! + '/api/GetApplications?page=1&pageSize=100', {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            this.setState({ dataTable: response.data.data });
+        }).catch(error => {
+            console.error('Error al obtener datos:', error);
+        });
     }
 
-    public changeDetail = async (id?: string) => {
-        if(!this.state.showDetail){
-            const response = await axios.get(process.env.REACT_APP_BACKEND_URI! + '/api/application/' + id, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            this.setState({
-                detailResponse: response.data,
-                parsedFields: ((response && response.data && response.data.data && response.data.data.fields !== undefined && response.data.data.fields !== null)) ? JSON.parse(response.data.data.fields) : {mensaje: 'No existen campos'},
-                showAlert: false
-            });
-        }else{
-            this.getData();
-        }
-        this.setState((prevState) => ({
-            showDetail: !prevState.showDetail,
-            showTable: !prevState.showTable
-        }));
-
+    public getApplicationById = async (id?: string) => {
+        const response = await axios.get(process.env.REACT_APP_BACKEND_URI! + '/api/application/' + id, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        this.setState({
+            detailResponse: response.data,
+            parsedFields: ((response && response.data && response.data.data && response.data.data.fields !== undefined && response.data.data.fields !== null)) ? JSON.parse(response.data.data.fields) : { mensaje: 'No existen campos' },
+            showAlert: false
+        });
     }
 
     // Component render
     render() {
+
         return (
 
             <div style={{
@@ -131,8 +156,52 @@ class HomePage extends React.Component<any, HomePageState>  {
                 backgroundColor: tokens.colorNeutralBackground4,
                 gridTemplateColumns: "auto"
             }}>
-                {/* Formulario para crear un nuevo proceso de selcción */}
-                {this.state.showForm && (
+                {/* Pantalla Inicial - Lista de Procesos de selección */}
+                {this.state.showMain && (
+
+                    <div className="component-container">
+
+                        <div className="divTittle">
+                            <h1>Procesos de selección</h1>
+                        </div>
+                        <table className="lista">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Nombre</th>
+                                    <th>Fecha Creación</th>
+                                    <th>Estado</th>
+                                    <th>Archivo</th>
+                                    <th>-</th>
+                                    <th>-</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {this.state.dataTable.map((data: any, index: number) => (
+                                    <tr key={index}>
+                                        <td>{data.id}</td>
+                                        <td>{data.name}</td>
+                                        <td>{data.createdAt}</td>
+                                        <td>{data.status}</td>
+                                        <td><a href={data.excelUrl} target="_blank" rel="noopener noreferrer">Ver archivo</a></td>
+                                        <td>
+                                            <button className="detalle-btn" onClick={() => this.showApplicationDetail(data.id)}>Ver detalle</button>
+                                        </td>
+                                        <td>
+                                            <button className="detalle-btn" onClick={() => this.showFilterCandidates(data.id)}>Filtrar Candidatos</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        <div className="btn-with-margin">
+                            <button onClick={this.showNewProcess}>Nuevo Proceso</button>
+                        </div>
+                        <br />
+                    </div>
+                )}
+                {/* Formulario para crear un nuevo proceso de selección */}
+                {this.state.showNewProcess && (
                     <div className="component-container">
                         {this.state.showAlert && (<AlertMessage
                             message="¡El archivo se cargo con exitosamente!"
@@ -144,7 +213,7 @@ class HomePage extends React.Component<any, HomePageState>  {
                             <h3>Por favor ingrese el nombre de la acción y el archivo</h3>
                             <form onSubmit={this.handleSubmit} encType="multipart/form-data">
                                 <div>
-                                    <input type="text"  id="name" onChange={this.handleInputChange} className="file-input" required placeholder="Nombre"/>
+                                    <input type="text" id="name" onChange={this.handleInputChange} className="file-input" required placeholder="Nombre" />
                                 </div>
                                 <div>
                                     <input type="file" id="file" onChange={this.handleFileChange} className="file-input" required />
@@ -155,13 +224,13 @@ class HomePage extends React.Component<any, HomePageState>  {
                             </form>
                         </div>)}
                         <div>
-                            <button onClick={this.changeForm}>Listado de aplicaciones</button>
+                            <button onClick={this.showMain}>Listado de aplicaciones</button>
                         </div>
                     </div>
 
                 )}
-                {/* Formulario para detalle */}
-                {this.state.showDetail && (
+                {/* Formulario para detalle de un proceso de selección */}
+                {this.state.showApplicationDetail && (
 
                     <div className="component-container">
                         <div className="divTittle">
@@ -188,49 +257,32 @@ class HomePage extends React.Component<any, HomePageState>  {
                             <a className="field-link" href={this.state.detailResponse.data.excelUrl}>{this.state.detailResponse.data.excelUrl}</a>
                         </div>
                         <div>
-                            <button onClick={() => this.changeDetail()}>Procesos de selección</button>
+                            <button onClick={() => this.showMain()}>Procesos de selección</button>
                         </div>
                     </div>
 
                 )}
-                {/* Pantalla Inicial - Lista de Procesos de selección */}
-                {this.state.showTable && (
-
+                {/* Formulario para filtrar candidatos */}
+                {this.state.showFilterCandidates && (
                     <div className="component-container">
 
                         <div className="divTittle">
-                            <h1>Procesos de selección</h1>
+                            <h1>Filtrado de candiataos</h1>
                         </div>
-                        <table className="lista">
-                            <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Nombre</th>
-                                <th>Fecha Creación</th>
-                                <th>Estado</th>
-                                <th>Archivo</th>
-                                <th>Acciones</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {this.state.dataTable.map((data: any, index: number) => (
-                                <tr key={index}>
-                                    <td>{data.id}</td>
-                                    <td>{data.name}</td>
-                                    <td>{data.createdAt}</td>
-                                    <td>{data.status}</td>
-                                    <td><a href={data.excelUrl} target="_blank" rel="noopener noreferrer">Ver archivo</a></td>
-                                    <td>
-                                        <button className="detalle-btn" onClick={() => this.changeDetail(data.id)}>Ver detalle</button>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                        <div className="btn-with-margin">
-                            <button onClick={this.changeForm}>Nuevo Proceso</button>
+
+                        <div className="field">
+                            <span className="field-label">ID:</span>
+                            <span className="field-value">{this.state.detailResponse.data.id}</span>
                         </div>
-                        <br/>
+                        <div className="field">
+                            <span className="field-label">Nombre:</span>
+                            <span className="field-value">{this.state.detailResponse.data.name}</span>
+                        </div>
+
+                        <div>
+                            <button onClick={() => this.showMain()}>Procesos de selección</button>
+                        </div>
+
                     </div>
                 )}
             </div>

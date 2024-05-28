@@ -1,7 +1,7 @@
 import "./App.css";
 import { Route, Routes, useNavigate  } from "react-router-dom";
 import { FluentProvider, teamsLightTheme  } from "@fluentui/react-components";
-import HomePage  from "./views/HomePage";
+import HomePage  from "./components/HomePage";
 import { PageLayout } from './components/PageLayout';
 import { MsalProvider, useMsal } from '@azure/msal-react';
 

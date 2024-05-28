@@ -26,15 +26,7 @@ jobs:
           npm install
           CI=''
           npm install env-cmd
-          npm run build:testing
-        env:
-          REACT_APP_CLIENT_ID: ${{ secrets.REACT_APP_CLIENT_ID }}
-          REACT_APP_START_LOGIN_PAGE_URL: ${{ secrets.REACT_APP_START_LOGIN_PAGE_URL }}
-          REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
-          REACT_APP_API_HEADER: ${{ secrets.REACT_APP_API_HEADER }}
-          REACT_APP_API_ENDPOINT: ${{ secrets.REACT_APP_API_ENDPOINT }}
-          REACT_APP_OAUTH_AUTHORITY: ${{ secrets.REACT_APP_OAUTH_AUTHORITY }}
-    
+          npm run build:testing    
       - name: Get DateTime as tag for the container
         id: get_datetime
         run: |
@@ -52,10 +44,10 @@ jobs:
         with: 
           appSourcePath: ${{ github.workspace }}/Frontend
           dockerfilePath: Dockerfile
-          acrName: acraiformsvalidationeastustest
-          containerAppName: capps-web-ai-forms-eastus-test
-          resourceGroup: rg-ai-forms-validation-test
-          imageToBuild: acraiformsvalidationeastustest.azurecr.io/poc-ai-web:latest
+          acrName: acraicvscreeningeastustest
+          containerAppName: capps-web-cvscreen-eastus-test
+          resourceGroup: RG-OPENAI
+          imageToBuild: acraicvscreeningeastustest.azurecr.io/poc-web-api:latest
 
       - name: Deploy the container app 
         uses: azure/cli@v2
@@ -63,9 +55,9 @@ jobs:
           cliversion: 2.30.0
           inlineScript: |
             az containerapp update \
-              --name capps-web-ai-forms-eastus-test \
-              --resource-group rg-ai-forms-validation-test \
-              --image acraiformsvalidationeastustest.azurecr.io/poc-ai-web:latest \
+              --name acraicvscreeningeastustest \
+              --resource-group RG-OPENAI \
+              --image acraicvscreeningeastustest.azurecr.io/poc-web-api:latest \
               --cpu 1.0 \
               --memory 2.0Gi \
               --min-replicas 1 \

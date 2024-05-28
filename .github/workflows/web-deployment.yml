@@ -26,7 +26,8 @@ jobs:
           npm install
           CI=''
           npm install env-cmd
-          npm run build:testing    
+          npm run build:testing
+
       - name: Get DateTime as tag for the container
         id: get_datetime
         run: |
@@ -62,4 +63,4 @@ jobs:
               --memory 2.0Gi \
               --min-replicas 1 \
               --max-replicas 1 \
-              --revision-suffix ${{ steps.get_datetime.outputs.formatted_datetime }}          
+              --revision-suffix ${{ steps.get_datetime.outputs.formatted_datetime }}        

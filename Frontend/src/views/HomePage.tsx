@@ -56,7 +56,6 @@ class HomePage extends React.Component<any, HomePageState> {
     }
 
     public showMain = () => {
-        alert('showMain');
         this.getApplications();
         this.changeStatesTofalse();
         this.setState((prevState) => ({
@@ -289,6 +288,5 @@ class HomePage extends React.Component<any, HomePageState> {
         );
     };
 }
-
 
 export default withMsal(HomePage);

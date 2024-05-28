@@ -55,7 +55,7 @@ jobs:
           cliversion: 2.30.0
           inlineScript: |
             az containerapp update \
-              --name acraicvscreeningeastustest \
+              --name capps-web-cvscreen-eastus-test \
               --resource-group RG-OPENAI \
               --image acraicvscreeningeastustest.azurecr.io/poc-web-api:latest \
               --cpu 1.0 \

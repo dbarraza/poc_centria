@@ -129,7 +129,7 @@ const FilterCandidates = ({ detailResponse, showMain }: any) => {
                     />
                 </div>
                 <div className="div-flex">
-                    <label className="field-input-label">Consentimiento: </label>
+                    <label className="field-input-label">Consentimiento:</label>
                     <input
                         type="text"
                         name="consent"

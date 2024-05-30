@@ -117,7 +117,7 @@ namespace Backend.Service.BusinessLogic
                 var ProcessingDate = DateTime.Now;
                 var date = DateTime.Now.ToString("yyyyMMddHHmmss");
 
-                string cvNoProceced = "cv-sin-procesar";
+                string cvNoProceced = "test";
                 string cvProceced = "cv-procesados";
 
                 string uriCV = await _fileStorage.CopyBlobAsync(filename, name, cvNoProceced, cvProceced);
@@ -150,27 +150,29 @@ namespace Backend.Service.BusinessLogic
 
                 this.logger.LogInformation($"Informacion extraida por Doc Inteligence: \n{allContent}");
 
-                string jobInformation = @"Ingeniero/a de Datos Senior. \n Funciones: \r\n\r\nElaborar propuestas de mejora en las soluciones de data analytics existentes, desde el frente de ingeniería,
-                para lograr eficiencia operativa en la arquitectura existente de GCP. Diseñar, desarrollar, probar y desplegar procesos de extracción, transformación y carga (ETL y ELT)
-                de datos estructurados y no estructurados. \r\n\r\nImplementar soluciones de ingeniería de datos que aseguren el cumplir con los objetivos de los proyectos de Centria y Clientes. 
-                Velar porque todos los desarrollos (propios y realizados en conjunto con partners/proveedores) \r\n\r\nMonitorear y asegurar un óptimo performance de las soluciones end to end,
-                a fin de mitigar incidencias en las soluciones existentes. Plantear un Dashboard de monitoreo de proceso ETLs para llevar un mejor control y brindar visibilidad de la ejecución 
-                de todas las tareas. \r\n\r\nPlantear e implementar propuesta de ordenamiento por capas en GCP; así como un plan de documentación de activos de información existentes y pases
-                producción tanto en GCP como en PowerBI. \r\n\r\nIdentificar oportunidades de negocio sobre proyectos de data y Analytics, en Centria y Clientes. \r\n\r\nConocimientos y 
-                Requisitos: \r\n\r\nIngeniero(a) de Sistemas, Informático(a) o Industrial o relacionadas. \r\n\r\nExperiencia de 4 años desempeñando funciones de implementación de proyectos 
-                de Data & Analytics (Google y PowerBI). \r\n\r\nExperiencia en el desarrollo pipelines de datos ELTs, ETLs para datos estructurados y no estructurados /experiencia técnica 
-                trabajando con big data, técnicas y herramientas modernas de análisis de datos; y con una sólida comprensión de los fundamentos matemáticos y estadísticos. \r\n\r\nGCP/
-                Power BI intermedio - avanzado / Python ";
+
+                // Obtener la descripción del trabajo desde Cosmos DB
+                string jobId = filename.Split('_')[0];
+                
+                var jobIdGuid = Guid.Parse(jobId);
+
+                var jobInformation = await this.dataAccess.Applications.GetAsync(jobIdGuid);
+
+                string jobDescription = jobInformation.JobDescription;
+
+                this.logger.LogInformation($"Informacion del Job Id: \n{jobDescription}");
+
 
                 string calificationOfPostulant = @"Eres un asistente experto en Recursos Humanos y selección de Personal. Desde Centria estamos buscando al postulante ideal para un puesto de trabajo.
-                Teniendo la información del puesto buscado, tenes la misión de calificar a un postulante segun la información que se extrajo de su currículum. El puntaje tiene que se de 0 a 100,
-                en donde 0 es que el candidato no tiene ninguna capacidad para ocupar el puesto buscado y 100 indica que es el candidato ideal para ese puesto y cumple con todos los requisitos del puesto. 
-                Para que el puntaje sirva como medida, necesito que penalices cada requerimiento que esta en la información del puesto buscado, que no se encuentre en la información del postulante que te voy a comaprtir. 
+                Teniendo la información del puesto buscado, tenes la misión de calificar a un postulante segun la información que se extrajo de su currículum. El puntaje debe ser de 0 a 100,
+                donde 0 es que el candidato no tiene ninguna capacidad para ocupar el puesto buscado y 100 indica que es el candidato ideal para ese puesto y cumple con todos los requisitos del puesto.
+                En la información del puesto se detallan las ""Funciones"", que son las tareas que se le van a exigir al postulante, y los ""Conocimientos y Requisitos"" que son los puntos que debe cumplir el postulante.   
+                Debes penalizar el puntaje por cada requerimiento dentro de la informacion del puesto que no se cumple en la información del postulante que te voy a comaprtir, exceptuando aquellos requisitos que están marcados como '(deseable)'. 
                 Además del puntaje, necesito una breve explicación de por qué se le asignó ese puntaje. Necesito la respuesta en formato Json y que solo traiga los siguientes campos. ""Puesto Buscado"", ""Nombre del postulante"", 
                 ""Correo del postulante"", ""Puntaje"" y ""Explicacion"" ";
 
                 string promptPdf = "Determine la información necesaria del siguiente archivo pdf extraida del correo electronico:";
-                string completionPdf = $"{promptPdf} \n Información del puesto buscado: {jobInformation} \n Información del postulante: \n{allContent}";
+                string completionPdf = $"{promptPdf} \n Información del puesto buscado: {jobDescription} \n Información del postulante: \n{allContent}";
 
                 var responseCalificationCv = await NonStreamingChat(completionPdf, calificationOfPostulant);
 
@@ -198,6 +200,7 @@ namespace Backend.Service.BusinessLogic
                     CandidateEmail = candidateEmail,
                     Calification = calification,
                     Explanation = explanation,
+                    JobId = jobId,
                     ProcessingDate = ProcessingDate,
                     FileUri = uriCV
                 });

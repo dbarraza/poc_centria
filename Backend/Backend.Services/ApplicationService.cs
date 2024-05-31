@@ -10,7 +10,9 @@ using Backend.Models;
 using Backend.Models.Out;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Backend.Services
 {
@@ -21,17 +23,20 @@ namespace Backend.Services
         private readonly Uri _searchEndpoint;
         private readonly string _searchKey;
         private readonly string _indexName;
+        private readonly IFileStorage _fileStorage;
+        private const int SAS_TOKEN_EXPIRATION_IN_MINUTES = 60;
 
-        public ApplicationService(ISessionProvider sessionProvider, IDataAccess dataAccess, ILogger<IApplicationService> logger, IExcelService excelService, IConfiguration configuration) : base(sessionProvider, dataAccess, logger)
+        public ApplicationService(ISessionProvider sessionProvider, IDataAccess dataAccess, ILogger<IApplicationService> logger, IExcelService excelService, IConfiguration configuration, IFileStorage fileStorage) : base(sessionProvider, dataAccess, logger)
         {
             _excelService = excelService;
             _indexName = configuration.GetValue<string>("search:IndexName");
             _searchEndpoint = new Uri(configuration.GetValue<string>("search:Endpoint"));
             _searchKey = configuration.GetValue<string>("search:Key");
+            _fileStorage = fileStorage;
         }
 
         /// <inheritdoc/>
-        public async Task<Application> CreateApplicationAsync(string applicationName, string fileName, Stream data, string contentType)
+        public async Task<Application> CreateApplicationAsync(string applicationName, string jobDescription, string fileName, Stream data, string contentType)
         {
             try
             {
@@ -41,7 +46,8 @@ namespace Backend.Services
                     Id = Guid.NewGuid(),
                     Name = applicationName,
                     CreatedAt = DateTime.UtcNow,
-                    Status = ApplicationStatus.Created
+                    Status = ApplicationStatus.Created,
+                    JobDescription = jobDescription
                 };
                 await dataAccess.Applications.InsertAsync(application);
 
@@ -73,9 +79,8 @@ namespace Backend.Services
                 {
                     Id = x.Id,
                     Name = x.Name,
-                    ExcelUrl = x.ExcelUrl,
                     CreatedAt = x.CreatedAt,
-                    Status = x.Status.ToString()
+                    Status = GetStatusDescription(x.Status)
                 });
 
                 return new Result<IEnumerable<ApplicationModelOut>> { Success = true, Data = applicationsModel };
@@ -98,13 +103,16 @@ namespace Backend.Services
                     return null;
                 }
 
+                var sasToken = _fileStorage.GetSasTokenFromBlob(application.ExcelUrl, SAS_TOKEN_EXPIRATION_IN_MINUTES);
+
                 var applicationModel = new ApplicationModelOut
                 {
                     Id = application.Id,
                     Name = application.Name,
-                    ExcelUrl = application.ExcelUrl,
+                    ExcelUrl = $"{application.ExcelUrl}?{sasToken}",
                     CreatedAt = application.CreatedAt,
-                    Status = application.Status.ToString()
+                    Status = GetStatusDescription(application.Status),
+                    JobDescription = application.JobDescription
                 };
 
                 return new Result<ApplicationModelOut> { Success = true, Data = applicationModel };
@@ -174,7 +182,7 @@ namespace Backend.Services
                 var searchOptions = new SearchOptions
                 {
                     Filter = filterQuery,
-                    Size = 15,
+                    //Size = 15,
                     IncludeTotalCount = true,
                     Select =
                     {
@@ -249,5 +257,18 @@ namespace Backend.Services
                 throw;
             }
         }
+
+        private string GetStatusDescription(ApplicationStatus status)
+        {
+            return status switch
+            {
+                ApplicationStatus.Created => "Proceso Creado",
+                ApplicationStatus.CandidatesLoaded => "Candidatos Cargados",
+                ApplicationStatus.Prefiltered => "Candidatos Prefiltrados",
+                ApplicationStatus.Error => "Proces con Error",
+                _ => "-",
+            };
+        }
+
     }
 }

@@ -6,6 +6,7 @@ using Backend.Common.Interfaces.Services;
 using Microsoft.Extensions.Configuration;
 using Azure;
 using Microsoft.Extensions.Logging;
+using System.Reflection.Metadata;
 
 namespace Backend.Services
 {
@@ -49,6 +50,12 @@ namespace Backend.Services
                 return sasToken;
             }
             return string.Empty;
+        }
+
+
+        public string GetSasTokenFromBlob(string file, int expiresOnMinutes)
+        {
+            return GetSasToken(GetContainerName(file), expiresOnMinutes);
         }
 
         // <inheritdoc />
@@ -114,5 +121,21 @@ namespace Backend.Services
                 throw;
             }
         }
+
+        private string GetContainerName(string fileUrl)
+        {
+            Uri uri = new Uri(fileUrl);
+            string[] segments = uri.Segments;
+            if (segments.Length >= 2)
+            {
+                return segments[^3].TrimEnd('/');
+            }
+            else
+            {
+                throw new ArgumentException("URL no válida");
+            }
+        }
+
+
     }
 }

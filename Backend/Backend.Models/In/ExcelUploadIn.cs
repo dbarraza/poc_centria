@@ -11,5 +11,10 @@
         /// The name of the application process
         /// </summary>
         public string Name{ get; set; }
+
+        /// <summary>
+        /// The job description of the application process
+        /// </summary>
+        public string JobDescription { get; set; }
     }
 }

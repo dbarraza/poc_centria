@@ -1,6 +1,5 @@
 ﻿using Backend.Common.Models;
 using Backend.Entities;
-using Backend.Models;
 using Backend.Models.Out;
 
 namespace Backend.Common.Interfaces.Services
@@ -11,11 +10,12 @@ namespace Backend.Common.Interfaces.Services
         /// Create a new application
         /// </summary>
         /// <param name="applicationName"></param>
+        /// <param name="jobDescription"></param>
         /// <param name="fileName"></param>
         /// <param name="data"></param>
         /// <param name="contentType"></param>
         /// <returns></returns>
-        public Task<Application> CreateApplicationAsync(string applicationName, string fileName, Stream data, string contentType);
+        public Task<Application> CreateApplicationAsync(string applicationName, string jobDescription, string fileName, Stream data, string contentType);
 
         /// <summary>
         /// Get all applications

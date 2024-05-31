@@ -13,9 +13,8 @@ const ApplicationList = ({ dataTable, showApplicationDetail, showFilterCandidate
                         <th>Nombre</th>
                         <th>Fecha Creación</th>
                         <th>Estado</th>
-                        <th>Archivo</th>
-                        <th>-</th>
-                        <th>-</th>
+                        <th>Acciones</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -25,7 +24,6 @@ const ApplicationList = ({ dataTable, showApplicationDetail, showFilterCandidate
                             <td>{data.name}</td>
                             <td>{data.createdAt}</td>
                             <td>{data.status}</td>
-                            <td><a href={data.excelUrl} target="_blank" rel="noopener noreferrer">Ver archivo</a></td>
                             <td><button className="detalle-btn" onClick={() => showApplicationDetail(data.id)}>Ver detalle</button></td>
                             <td><button className="detalle-btn" onClick={() => showFilterCandidates(data.id)}>Filtrar Candidatos</button></td>
                         </tr>

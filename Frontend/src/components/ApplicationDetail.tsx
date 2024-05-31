@@ -23,8 +23,12 @@ const ApplicationDetail = ({ detailResponse, showMain }: any) => {
                 <span className="field-value">{detailResponse.data.createdAt}</span>
             </div>
             <div className="field">
-                <span className="field-label">URL:</span>
-                <a className="field-link" href={detailResponse.data.excelUrl}>{detailResponse.data.excelUrl}</a>
+                <span className="field-label">URL Base Excel:</span>
+                <a className="field-link" href={detailResponse.data.excelUrl} target='_blank'>ver</a>
+            </div>
+            <div className='field'>
+                <span className="field-label">Descripción del empleo</span>
+                <span className="field-value">{detailResponse.data.jobDescription}</span>
             </div>
             <div>
                 <button onClick={showMain}>Procesos de selección</button>

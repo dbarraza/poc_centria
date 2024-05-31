@@ -51,7 +51,7 @@ namespace Backend.Services
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Response<ReceivedCv[]>), Description = "List of received Cv")]
         [Function(nameof(GetReceivedCvsHistoryAsync))]
         public async Task<HttpResponseData> GetReceivedCvsHistoryAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "history")] HttpRequestData request)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "history")] HttpRequestData request)
         {
             var pageNumber = 1;
             if (request.Query.AllKeys.Contains("page"))

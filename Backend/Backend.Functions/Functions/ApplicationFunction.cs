@@ -54,9 +54,7 @@ namespace Backend.Functions.Functions
 
                 _logger.LogInformation($"[ChatFunction:CreateApplication] - New application created with guid {response.Id}");
 
-                return new OkObjectResult(response);
-
-                
+                return new OkObjectResult(response);   
             }
             catch (Exception ex)
             {

@@ -1,6 +1,4 @@
-import React from 'react';
-
-const ApplicationList = ({ dataTable, showApplicationDetail, showFilterCandidates, showNewProcess }: any) => {
+const ApplicationList = ({ dataTable, showApplicationDetail, showFilterCandidates, showCvProcessing, showNewProcess }: any) => {
     return (
         <div className="component-container">
             <div className="divTittle">
@@ -13,8 +11,9 @@ const ApplicationList = ({ dataTable, showApplicationDetail, showFilterCandidate
                         <th>Nombre</th>
                         <th>Fecha Creación</th>
                         <th>Estado</th>
-                        <th>Acciones</th>
-                        <th>Acciones</th>
+                        <th>-</th>
+                        <th>-</th>
+                        <th>-</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,12 +25,13 @@ const ApplicationList = ({ dataTable, showApplicationDetail, showFilterCandidate
                             <td>{data.status}</td>
                             <td><button className="detalle-btn" onClick={() => showApplicationDetail(data.id)}>Ver detalle</button></td>
                             <td><button className="detalle-btn" onClick={() => showFilterCandidates(data.id)}>Filtrar Candidatos</button></td>
+                            <td><button className="detalle-btn" onClick={() => showCvProcessing(data.id)}>Cargar CVs</button></td>
                         </tr>
                     ))}
                 </tbody>
             </table>
             <div className="btn-with-margin">
-                <button onClick={showNewProcess}>Nuevo Proceso</button>
+                <button onClick={showNewProcess}>Volver</button>
             </div>
         </div>
     );

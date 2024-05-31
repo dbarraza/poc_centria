@@ -16,8 +16,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
-using Newtonsoft.Json.Linq;
-
 
 namespace Backend.Service.BusinessLogic
 {
@@ -56,6 +54,10 @@ namespace Backend.Service.BusinessLogic
         private readonly IConfiguration _configuration;
         private readonly IFileStorage _fileStorage;
 
+        private readonly string _pendingCVContainer;
+        private readonly string _processedCVContainer;
+        private const int SAS_TOKEN_EXPIRATION_IN_MINUTES = 60;
+
         /// <summary>
         /// Gets by DI the dependeciees
         /// </summary>
@@ -75,17 +77,23 @@ namespace Backend.Service.BusinessLogic
             this.AzureDocumentInteligenceApiKey = configuration["AzureDocumentInteligenceApiKey"];
             _configuration = configuration;
             _fileStorage = fileStorage;
+
+            _pendingCVContainer = configuration["blob:CVPendingFolder"];
+            _processedCVContainer = configuration["blob:CVProcessedFolder"];
         }
 
-
-
         /// <inheritdoc/>      
-        public async Task<Result<List<ReceivedCv>>> GetReceivedCvsHistoryAsync(int page)
+        public async Task<Result<List<ReceivedCv>>> GetReceivedCvsHistoryAsync(int page, Guid applicationId)
         {
             try
             {
                 var token = _fileStorage.GetSasToken("cv-procesados", 60);
-                var data = (await this.dataAccess.ReceivedCvs.GetAsync()).ToList();
+                var data = (await this.dataAccess.ReceivedCvs.GetAsync(
+                    filter:x => x.JobId == applicationId,
+                    orderBy: null,
+                    includeProperties:null,
+                    page:page
+                    )).ToList();
                 foreach (var item in data)
                 {
                     item.FileUri = $"{item.FileUri}?{token}";
@@ -98,11 +106,16 @@ namespace Backend.Service.BusinessLogic
             }
         }
 
+        public async Task<string> UploadCv(string applicationId, string fileName, Stream data, string contentType)
+        {
+            var uri = await UploadAsync(Guid.Parse(applicationId), fileName, data, contentType);
+            return uri;
+        }
 
         /// <summary>
         /// extrae la informacion de un Cv usando doc inteligence y lo califica usando OpenAI.
         /// </summary>
-        
+
         public async Task<bool> ProcessCvFromStorageAsync(Stream file, string filename)
         {
             try
@@ -117,15 +130,12 @@ namespace Backend.Service.BusinessLogic
                 var ProcessingDate = DateTime.Now;
                 var date = DateTime.Now.ToString("yyyyMMddHHmmss");
 
-                string cvNoProceced = "test";
-                string cvProceced = "cv-procesados";
+                string uriCV = await _fileStorage.CopyBlobAsync(filename, name, _pendingCVContainer, _processedCVContainer);
 
-                string uriCV = await _fileStorage.CopyBlobAsync(filename, name, cvNoProceced, cvProceced);
-
-                this.logger.LogInformation($"Se ha movido el archivo del CV al contenedor {cvProceced} y se ha eliminado del contenedor: {cvNoProceced}");
+                this.logger.LogInformation($"Se ha movido el archivo del CV al contenedor {_processedCVContainer} y se ha eliminado del contenedor: {_pendingCVContainer}");
 
 
-                var sasToken = _fileStorage.GetSasToken(cvProceced, 60);
+                var sasToken = _fileStorage.GetSasToken(_processedCVContainer, 60);
 
                 var blobUrl = $"{uriCV}?{sasToken}";
 
@@ -135,7 +145,7 @@ namespace Backend.Service.BusinessLogic
                 this.logger.LogInformation($"Extractayendo texto del Cv utilizando Doc Inteligence");
 
 
-                var pdfText = await ExtractTextFromPdfAsync(cvProceced, name, blobUrl);
+                var pdfText = await ExtractTextFromPdfAsync(_processedCVContainer, name, blobUrl);
 
 
                 StringBuilder sb = new StringBuilder(); // StringBuilder para concatenar el contenido
@@ -200,7 +210,7 @@ namespace Backend.Service.BusinessLogic
                     CandidateEmail = candidateEmail,
                     Calification = calification,
                     Explanation = explanation,
-                    JobId = jobId,
+                    JobId = jobIdGuid,
                     ProcessingDate = ProcessingDate,
                     FileUri = uriCV
                 });
@@ -215,7 +225,6 @@ namespace Backend.Service.BusinessLogic
             }
             return false;
         }
-
 
         /// <summary>
         /// Ask to Azure OpenAI for a chat completion
@@ -429,7 +438,33 @@ namespace Backend.Service.BusinessLogic
 
         }
 
+        /// <summary>
+        /// Uploads a file to the storage
+        /// </summary>
+        /// <param name="applicationId"></param>
+        /// <param name="fileName"></param>
+        /// <param name="fileStream"></param>
+        /// <param name="contentType"></param>
+        /// <returns></returns>
+        private async Task<string> UploadAsync(Guid applicationId, string fileName, Stream fileStream, string contentType)
+        {
+            try
+            {
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+                var combinedFileName = $"{applicationId}_{fileNameWithoutExtension}";
 
+                // Updload file to the storage
+                var sasToken = _fileStorage.GetSasToken(_pendingCVContainer, SAS_TOKEN_EXPIRATION_IN_MINUTES);
+                var uri = await _fileStorage.SaveFileAsyncAsync(_pendingCVContainer, string.Empty, combinedFileName, fileStream, contentType, Path.GetExtension(fileName));
+
+                return uri;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error uploading document");
+                return null;
+            }
+        }
 
     }
 }

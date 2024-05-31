@@ -19,7 +19,7 @@ namespace Backend.Models
 
         public string Explanation { get; set; }
 
-        public string JobId { get; set; }
+        public Guid JobId { get; set; }
 
         public DateTime ProcessingDate { get; set; }
         public string FileUri { get; set; }

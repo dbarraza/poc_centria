@@ -201,7 +201,7 @@ const FilterCandidates = ({ detailResponse, showMain }: any) => {
             )}
 
             <div>
-                <button onClick={showMain}>Procesos de selección</button>
+                <button onClick={showMain}>Volver</button>
             </div>
         </div>
 

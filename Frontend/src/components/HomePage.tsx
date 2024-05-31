@@ -5,6 +5,7 @@ import ApplicationList from "./ApplicationList";
 import NewProcessForm from "./NewProcessForm";
 import ApplicationDetail from "./ApplicationDetail";
 import FilterCandidates from "./FilterCandidates";
+import CvProcessing from "./CvProcessing";
 import { tokens } from "@fluentui/react-components";
 
 type HomePageState = {
@@ -17,6 +18,7 @@ type HomePageState = {
     showAlert: boolean,
     showApplicationDetail: boolean,
     showFilterCandidates: boolean,
+    showCvProcessing: boolean,
     file: File | null,
     applicationName: string,
     applicationJobDescription: string,
@@ -37,6 +39,7 @@ class HomePage extends React.Component<any, HomePageState> {
             showNewProcess: false,
             showAlert: false,
             showApplicationDetail: false,
+            showCvProcessing: false,
             showFilterCandidates: false,
             file: null,
             applicationName: "",
@@ -54,7 +57,8 @@ class HomePage extends React.Component<any, HomePageState> {
             showNewProcess: false,
             showAlert: false,
             showApplicationDetail: false,
-            showFilterCandidates: false
+            showFilterCandidates: false,
+            showCvProcessing: false
         });
     }
 
@@ -79,6 +83,12 @@ class HomePage extends React.Component<any, HomePageState> {
         await this.getApplicationById(id);
         this.changeStatesTofalse();
         this.setState({ showFilterCandidates: true });
+    }
+
+    showCvProcessing = async (id?: string) => {
+        await this.getApplicationById(id);
+        this.changeStatesTofalse();
+        this.setState({ showCvProcessing: true });
     }
 
     handleApplicationNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,14 +148,15 @@ class HomePage extends React.Component<any, HomePageState> {
     }
 
     render() {
-        const { showMain, showNewProcess, showApplicationDetail, showFilterCandidates, showAlert, dataTable, detailResponse } = this.state;
+        const { showMain, showNewProcess, showApplicationDetail, showFilterCandidates, showCvProcessing, showAlert, dataTable, detailResponse } = this.state;
 
         return (
             <div style={{ display: "grid", height: "100vh", backgroundColor: tokens.colorNeutralBackground4, gridTemplateColumns: "auto" }}>
-                {showMain && <ApplicationList dataTable={dataTable} showApplicationDetail={this.showApplicationDetail} showFilterCandidates={this.showFilterCandidates} showNewProcess={this.showNewProcess} />}
+                {showMain && <ApplicationList dataTable={dataTable} showApplicationDetail={this.showApplicationDetail} showFilterCandidates={this.showFilterCandidates} showCvProcessing={this.showCvProcessing} showNewProcess={this.showNewProcess} />}
                 {showNewProcess && <NewProcessForm handleSubmit={this.handleSubmit} handleApplicationNameChange={this.handleApplicationNameChange} handleApplicationJobDescriptionChange={this.handleApplicationJobDescriptionChange} handleFileChange={this.handleFileChange} showAlert={showAlert} showMain={this.showMain} />}
                 {showApplicationDetail && <ApplicationDetail detailResponse={detailResponse} showMain={this.showMain} />}
                 {showFilterCandidates && <FilterCandidates detailResponse={detailResponse} showMain={this.showMain} />}
+                {showCvProcessing && <CvProcessing detailResponse={detailResponse} showMain={this.showMain} />}
             </div>
         );
     }

@@ -31,7 +31,7 @@ const ApplicationDetail = ({ detailResponse, showMain }: any) => {
                 <span className="field-value">{detailResponse.data.jobDescription}</span>
             </div>
             <div>
-                <button onClick={showMain}>Procesos de selección</button>
+                <button onClick={showMain}>Volver</button>
             </div>
         </div>
     );

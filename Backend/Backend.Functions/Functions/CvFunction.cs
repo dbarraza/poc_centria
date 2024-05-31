@@ -69,13 +69,13 @@ namespace Backend.Services
         /// <summary>
         /// Process a new Cv uploaded to the storage container.
         /// </summary>
-        //[Function(nameof(ProcessCvFromStorageAsync))]
-        //public async Task ProcessCvFromStorageAsync(
-        //    [BlobTrigger("cv-sin-procesar/{filename}", Connection = "AzureWebJobsStorage")] Stream file,
-        //    string filename)
-        //{
-        //    await this.businessLogic.ProcessCvFromStorageAsync(file, filename);
-        //}
+        [Function(nameof(ProcessCvFromStorageAsync))]
+        public async Task ProcessCvFromStorageAsync(
+            [BlobTrigger("cv-sin-procesar/{filename}", Connection = "AzureWebJobsStorage")] Stream file,
+            string filename)
+        {
+            await this.businessLogic.ProcessCvFromStorageAsync(file, filename);
+        }
 
         //Add function to upload a new CV, it receives the file and the application id
         [OpenApiOperation(operationId:"UploadCv", tags: ["Cv"], Description = "Upload a new Cv")]

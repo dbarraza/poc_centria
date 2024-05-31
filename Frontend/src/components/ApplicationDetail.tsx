@@ -27,7 +27,7 @@ const ApplicationDetail = ({ detailResponse, showMain }: any) => {
                 <a className="field-link" href={detailResponse.data.excelUrl} target='_blank'>ver</a>
             </div>
             <div className='field'>
-                <span className="field-label">Descripción del empleo</span>
+                <span className="field-label">Descripción del cargo</span>
                 <span className="field-value">{detailResponse.data.jobDescription}</span>
             </div>
             <div>

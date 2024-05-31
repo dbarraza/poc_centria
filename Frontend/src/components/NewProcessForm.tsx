@@ -1,16 +1,29 @@
 import React from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import AlertMessage from './AlertMessage';
 
 const NewProcessForm = ({ handleSubmit, handleApplicationNameChange, handleApplicationJobDescriptionChange, handleFileChange, showAlert, showMain }: any) => {
+    const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        try {
+            await handleSubmit(event);
+            toast.success('¡El archivo se cargó exitosamente!');
+        } catch (error) {
+            toast.error('Error al cargar el archivo');
+        }
+    };
+
     return (
         <div className="component-container">
+            <ToastContainer />
             {showAlert && <AlertMessage message="¡El archivo se cargó exitosamente!" />}
             {!showAlert && (
                 <div>
                     <div className="divTittle">
                         <h1>Nuevo Proceso de Selección</h1>
                     </div>
-                    <form onSubmit={handleSubmit} encType="multipart/form-data">
+                    <form onSubmit={onSubmit} encType="multipart/form-data">
                         <div className="div-flex">
                             <label className="field-input-label">Nombre del Proceso:</label>
                             <input
@@ -53,7 +66,7 @@ const NewProcessForm = ({ handleSubmit, handleApplicationNameChange, handleAppli
                 </div>
             )}
             <div>
-                <button onClick={showMain} className="btn btn-secondary">Listado de Aplicaciones</button>
+                <button onClick={showMain} className="btn btn-secondary">Volver</button>
             </div>
         </div>
     );

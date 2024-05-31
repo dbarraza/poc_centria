@@ -1,4 +1,4 @@
-const ApplicationList = ({ dataTable, showApplicationDetail, showFilterCandidates, showCvProcessing, showNewProcess }: any) => {
+const ApplicationList = ({ dataTable, showApplicationDetail, showFilterCandidates, showCvProcessing, showCvHistory, showNewProcess }: any) => {
     return (
         <div className="component-container">
             <div className="divTittle">
@@ -11,9 +11,7 @@ const ApplicationList = ({ dataTable, showApplicationDetail, showFilterCandidate
                         <th>Nombre</th>
                         <th>Fecha Creación</th>
                         <th>Estado</th>
-                        <th>-</th>
-                        <th>-</th>
-                        <th>-</th>
+                        <th colSpan={4}>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,12 +24,13 @@ const ApplicationList = ({ dataTable, showApplicationDetail, showFilterCandidate
                             <td><button className="detalle-btn" onClick={() => showApplicationDetail(data.id)}>Ver detalle</button></td>
                             <td><button className="detalle-btn" onClick={() => showFilterCandidates(data.id)}>Filtrar Candidatos</button></td>
                             <td><button className="detalle-btn" onClick={() => showCvProcessing(data.id)}>Cargar CVs</button></td>
+                            <td><button className="detalle-btn" onClick={() => showCvHistory(data.id)}>CVs Procesados</button></td>
                         </tr>
                     ))}
                 </tbody>
             </table>
             <div className="btn-with-margin">
-                <button onClick={showNewProcess}>Volver</button>
+                <button onClick={showNewProcess}>Nuevo Proceso de Selección</button>
             </div>
         </div>
     );

@@ -182,7 +182,7 @@ namespace Backend.Services
                 var searchOptions = new SearchOptions
                 {
                     Filter = filterQuery,
-                    //Size = 15,
+                    Size = 30,
                     IncludeTotalCount = true,
                     Select =
                     {

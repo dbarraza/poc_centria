@@ -1,10 +1,10 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
-import AlertMessage from './AlertMessage';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const CvProcessing = ({ detailResponse, showMain }: any) => {
+const UploadCvForm = ({ detailResponse, showMain }: any) => {
     const [file, setFile] = useState<File | null>(null);
-    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
@@ -28,16 +28,18 @@ const CvProcessing = ({ detailResponse, showMain }: any) => {
                 }
             });
             console.log('CV subido con éxito:', response.data);
-            setShowSuccessAlert(true);
-            setTimeout(() => setShowSuccessAlert(false), 3000); // Oculta el mensaje después de 3 segundos
+            toast.success('¡CV subido con éxito!');
+            // Refrescar la lista de CVs después de subir uno nuevo
+            // fetchReceivedCvs();
         } catch (error) {
             console.error('Error al subir el CV:', error);
+            toast.error('Error al subir el CV');
         }
     };
 
     return (
         <div className="component-container">
-            {showSuccessAlert && <AlertMessage message="¡CV subido con éxito!" />}
+            <ToastContainer />
             <div className="divTittle">
                 <h1>Carga de Cvs</h1>
             </div>
@@ -48,7 +50,6 @@ const CvProcessing = ({ detailResponse, showMain }: any) => {
                         type="text"
                         name="id"
                         value={detailResponse.data.id}
-                        placeholder="ID"
                         required
                         disabled
                     />
@@ -59,9 +60,19 @@ const CvProcessing = ({ detailResponse, showMain }: any) => {
                         type="text"
                         name="name"
                         value={detailResponse.data.name}
-                        placeholder="Name"
                         required
                         disabled
+                    />
+                </div>
+                <div className="div-flex">
+                    <label className="field-input-label">Descripción del cargo</label>
+                    <textarea
+                        className='input-textarea'
+                        value={detailResponse.data.jobDescription}
+                        required
+                        disabled
+                        rows={12}
+                        cols={150}
                     />
                 </div>
                 <div className="div-flex">
@@ -84,4 +95,4 @@ const CvProcessing = ({ detailResponse, showMain }: any) => {
     );
 }
 
-export default CvProcessing;
+export default UploadCvForm;

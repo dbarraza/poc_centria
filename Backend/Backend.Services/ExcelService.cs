@@ -105,12 +105,12 @@ namespace Backend.Services
                 {
                     logger.LogInformation($"[ExcelService:ProcessFileAsync] - Embedding content for candidate {count++} of {totalCandidates}");
 
-                    // Get the formItem content embeddings
-                    EmbeddingsOptions contentEmbeddingsOptions = new(_openAIModelName, new string[] { CleanUpTextForEmbeddings(candidate.Content) });
-                    Embeddings contentEmbeddings = await _openAIClient.GetEmbeddingsAsync(contentEmbeddingsOptions);
-                    ReadOnlyMemory<float> contentVector = contentEmbeddings.Data[0].Embedding;
+                    //// Get the formItem content embeddings
+                    //EmbeddingsOptions contentEmbeddingsOptions = new(_openAIModelName, new string[] { CleanUpTextForEmbeddings(candidate.Content) });
+                    //Embeddings contentEmbeddings = await _openAIClient.GetEmbeddingsAsync(contentEmbeddingsOptions);
+                    //ReadOnlyMemory<float> contentVector = contentEmbeddings.Data[0].Embedding;
 
-                    candidate.ContentVector = contentVector.ToArray();
+                    //candidate.ContentVector = contentVector.ToArray();
                 }
 
                 logger.LogInformation($"[ExcelService:ProcessFileAsync] - Start Indexing candidatos for application {applicationId} - date {DateTime.Now}");
@@ -254,7 +254,10 @@ namespace Backend.Services
                     // Recorremos las filas restantes para obtener los valores
                     for (int row = 1 + 1; row < rowCount; row++)
                     {
-                        var candidate = new CandidateModel();
+                        var candidate = new CandidateModel
+                        {
+                            Id = Guid.NewGuid()
+                        };
 
                         for (int col = 1; col <= colCount; col++)
                         {
@@ -265,7 +268,11 @@ namespace Backend.Services
 
                             if (col == idColumnIndex)
                             {
-                                candidate.CandidateId = cellValue;
+                                if (int.TryParse(cellValue, out int candidateId))
+                                {
+                                    candidate.CandidateId = candidateId;
+                                }
+                                
                             }
                             else if (col == nameColumnIndex)
                             {
@@ -277,7 +284,10 @@ namespace Backend.Services
                             }
                             else if (col == salaryExpectationColumnIndex)
                             {
-                                candidate.SalaryExpectation = int.Parse(cellValue);
+                                if (int.TryParse(cellValue, out int salaryExpectation))
+                                {
+                                    candidate.SalaryExpectation = salaryExpectation;
+                                }
                             }
                             else if (col == availabilityForWorkColumnIndex)
                             {
@@ -335,8 +345,9 @@ namespace Backend.Services
                 // Create fields based on the FormIndex model
                 Fields =
                 {
-                    new SimpleField(nameof(CandidateModel.CandidateId), SearchFieldDataType.String) { IsKey = true, IsFilterable = true, IsSortable = true, IsFacetable = true },
+                    new SearchField(nameof(CandidateModel.Id), SearchFieldDataType.String) { IsKey = true, IsFilterable = true, IsSortable = true, IsFacetable = true },
                     new SearchableField(nameof(CandidateModel.ApplicationId)) { IsFilterable = true, IsSortable = true },
+                    new SimpleField(nameof(CandidateModel.CandidateId), SearchFieldDataType.Int32) { IsFilterable = true, IsSortable = true, IsFacetable = true },
                     new SearchableField(nameof(CandidateModel.Name)) { IsFilterable = true, IsSortable = true },
                     new SearchableField(nameof(CandidateModel.Email)) { IsFilterable = true, IsSortable = true },
                     new SearchableField(nameof(CandidateModel.Content)) { IsFilterable = true, IsSortable = true, IsFacetable = true, AnalyzerName = "es.Microsoft" },

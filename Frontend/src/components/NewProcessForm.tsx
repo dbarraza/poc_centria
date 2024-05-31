@@ -1,31 +1,59 @@
 import React from 'react';
 import AlertMessage from './AlertMessage';
 
-const NewProcessForm = ({ handleSubmit, handleInputChange, handleFileChange, showAlert, showMain }: any) => {
+const NewProcessForm = ({ handleSubmit, handleApplicationNameChange, handleApplicationJobDescriptionChange, handleFileChange, showAlert, showMain }: any) => {
     return (
         <div className="component-container">
             {showAlert && <AlertMessage message="¡El archivo se cargó exitosamente!" />}
             {!showAlert && (
                 <div>
                     <div className="divTittle">
-                        <h1>Nuevo Proceso de selección</h1>
+                        <h1>Nuevo Proceso de Selección</h1>
                     </div>
-                    <h3>Por favor ingrese el nombre de la acción y el archivo</h3>
                     <form onSubmit={handleSubmit} encType="multipart/form-data">
-                        <div>
-                            <input type="text" id="name" onChange={handleInputChange} className="file-input" required placeholder="Nombre" />
+                        <div className="div-flex">
+                            <label className="field-input-label">Nombre del Proceso:</label>
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                onChange={handleApplicationNameChange}
+                                required
+                                placeholder="Nombre del Proceso"
+                            />
                         </div>
-                        <div>
-                            <input type="file" id="file" onChange={handleFileChange} className="file-input" required />
+                        <br />
+                        <div className="div-flex">
+                            <label className="field-input-label">Descripción del Puesto:</label>
+                            <textarea
+                                className='input-textarea'
+                                id="jobDescription"
+                                name="jobDescription"
+                                onChange={handleApplicationJobDescriptionChange}
+                                required
+                                placeholder="Descripción del Puesto"
+                                rows={12} // Ajusta el número de filas según sea necesario
+                                cols={100}
+                            />
                         </div>
-                        <div>
-                            <button type="submit">Enviar</button>
+                        <div className="div-flex">
+                            <label className="field-input-label">Archivo de Candidatos:</label>
+                            <input
+                                type="file"
+                                id="file"
+                                name="file"
+                                onChange={handleFileChange}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <button type="submit" className="btn btn-primary">Enviar</button>
                         </div>
                     </form>
                 </div>
             )}
             <div>
-                <button onClick={showMain}>Listado de aplicaciones</button>
+                <button onClick={showMain} className="btn btn-secondary">Listado de Aplicaciones</button>
             </div>
         </div>
     );

@@ -52,9 +52,8 @@ const FilterCandidates = ({ detailResponse, showMain }: any) => {
             </div>
             <form onSubmit={handleSubmit}>
                 <div className="div-flex">
-                    <span className="field-input-label">ID:</span>
+                    <label className="field-input-label">ID:</label>
                     <input
-                        className='.field-input-text'
                         type="text"
                         name="id"
                         value={detailResponse.data.id}
@@ -65,9 +64,8 @@ const FilterCandidates = ({ detailResponse, showMain }: any) => {
                     />
                 </div>
                 <div className="div-flex">
-                    <span className="field-input-label">Nombre del proceso:</span>
+                    <label className="field-input-label">Nombre del proceso:</label>
                     <input
-                        className='.field-input-text'
                         type="text"
                         name="name"
                         value={detailResponse.data.name}
@@ -78,9 +76,8 @@ const FilterCandidates = ({ detailResponse, showMain }: any) => {
                     />
                 </div>
                 <div className="div-flex">
-                    <span className="field-input-label">Salario Mínimo:</span>
+                    <label className="field-input-label">Salario Mínimo:</label>
                     <input
-                        className='.field-input-text'
                         type="text"
                         name="minSalaryExpect"
                         value={filters.minSalaryExpect}

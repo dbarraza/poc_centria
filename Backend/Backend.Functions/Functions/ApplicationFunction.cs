@@ -48,8 +48,9 @@ namespace Backend.Functions.Functions
                 var body = await MultipartFormDataParser.ParseAsync(request.Body);
                 var file = body.Files[0];
                 var name = body.GetParameterValue("name");
+                var jobDescription = body.GetParameterValue("jobDescription");
 
-                var response = await _applicationService.CreateApplicationAsync(name, file.FileName, file.Data, file.ContentType);
+                var response = await _applicationService.CreateApplicationAsync(name, jobDescription, file.FileName, file.Data, file.ContentType);
 
                 _logger.LogInformation($"[ChatFunction:CreateApplication] - New application created with guid {response.Id}");
 

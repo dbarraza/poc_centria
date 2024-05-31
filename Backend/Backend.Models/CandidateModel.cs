@@ -2,8 +2,9 @@
 {
     public class CandidateModel
     {
+        public Guid Id { get; set; }
         public string ApplicationId { get; set; }
-        public string CandidateId { get; set; }
+        public int CandidateId { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
         public int SalaryExpectation { get; set; }

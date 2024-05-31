@@ -5,7 +5,6 @@ import ApplicationList from "./ApplicationList";
 import NewProcessForm from "./NewProcessForm";
 import ApplicationDetail from "./ApplicationDetail";
 import FilterCandidates from "./FilterCandidates";
-import AlertMessage from "./AlertMessage";
 import { tokens } from "@fluentui/react-components";
 
 type HomePageState = {
@@ -19,7 +18,8 @@ type HomePageState = {
     showApplicationDetail: boolean,
     showFilterCandidates: boolean,
     file: File | null,
-    nameLoadFile: string,
+    applicationName: string,
+    applicationJobDescription: string,
     dataTable: any,
     detailResponse: any,
     parsedFields: { [key: string]: string }
@@ -39,7 +39,8 @@ class HomePage extends React.Component<any, HomePageState> {
             showApplicationDetail: false,
             showFilterCandidates: false,
             file: null,
-            nameLoadFile: "",
+            applicationName: "",
+            applicationJobDescription: "",
             dataTable: [],
             detailResponse: {},
             parsedFields: {}
@@ -80,8 +81,12 @@ class HomePage extends React.Component<any, HomePageState> {
         this.setState({ showFilterCandidates: true });
     }
 
-    handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ nameLoadFile: event.target.value });
+    handleApplicationNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({ applicationName: event.target.value });
+    };
+
+    handleApplicationJobDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({ applicationJobDescription: event.target.value });
     };
 
     handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,7 +101,8 @@ class HomePage extends React.Component<any, HomePageState> {
         if (this.state.file) {
             formData.append('file', this.state.file);
         }
-        formData.append('name', this.state.nameLoadFile);
+        formData.append('name', this.state.applicationName);
+        formData.append('jobDescription', this.state.applicationJobDescription);
         try {
             const response = await axios.post(process.env.REACT_APP_BACKEND_URI! + '/api/CreateApplication', formData, {
                 headers: {
@@ -137,7 +143,7 @@ class HomePage extends React.Component<any, HomePageState> {
         return (
             <div style={{ display: "grid", height: "100vh", backgroundColor: tokens.colorNeutralBackground4, gridTemplateColumns: "auto" }}>
                 {showMain && <ApplicationList dataTable={dataTable} showApplicationDetail={this.showApplicationDetail} showFilterCandidates={this.showFilterCandidates} showNewProcess={this.showNewProcess} />}
-                {showNewProcess && <NewProcessForm handleSubmit={this.handleSubmit} handleInputChange={this.handleInputChange} handleFileChange={this.handleFileChange} showAlert={showAlert} showMain={this.showMain} />}
+                {showNewProcess && <NewProcessForm handleSubmit={this.handleSubmit} handleApplicationNameChange={this.handleApplicationNameChange} handleApplicationJobDescriptionChange={this.handleApplicationJobDescriptionChange} handleFileChange={this.handleFileChange} showAlert={showAlert} showMain={this.showMain} />}
                 {showApplicationDetail && <ApplicationDetail detailResponse={detailResponse} showMain={this.showMain} />}
                 {showFilterCandidates && <FilterCandidates detailResponse={detailResponse} showMain={this.showMain} />}
             </div>

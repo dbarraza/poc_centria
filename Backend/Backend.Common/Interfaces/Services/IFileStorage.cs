@@ -11,6 +11,13 @@
         public string GetSasToken(string container, int expiresOnMinutes);
 
         /// <summary>
+        /// Get the SAS token for the file
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public string GetSasTokenFromBlob(string file, int expiresOnMinutes);
+
+        /// <summary>
         /// Save a file to the storage
         /// </summary>
         /// <param name="container"></param>

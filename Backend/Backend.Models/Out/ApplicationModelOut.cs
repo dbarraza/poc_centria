@@ -7,5 +7,6 @@
         public string ExcelUrl { get; set; }
         public DateTime CreatedAt { get; set; }
         public string Status { get; set; }
+        public string JobDescription { get; set; }
     }
 }

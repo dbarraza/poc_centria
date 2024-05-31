@@ -94,7 +94,7 @@ namespace Backend.Service.BusinessLogic
                     includeProperties:null,
                     page:page
                     )).ToList();
-                foreach (var item in data)
+                foreach (var item in data.OrderByDescending(x => x.Calification))
                 {
                     item.FileUri = $"{item.FileUri}?{token}";
                 }

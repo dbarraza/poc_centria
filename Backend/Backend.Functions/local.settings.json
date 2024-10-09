@@ -6,7 +6,7 @@
     "StorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=saaicvscreeningprod;AccountKey=nT8MG4khdEnJCxpHBVJIwEvgl+ThekScAIcQY4j5JwZv0JYpoATR9XQc1Dlk4EOy17Yc1ddualx0+AStbSMy5g==;EndpointSuffix=core.windows.net",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "ClientId": "0dc2ab7b-d8cc-45a2-b853-0cdab754cccc",
-    "ClientSecret": "e0557ad4-431a-4dc1-8deb-cce387d82913",
+    "ClientSecret": "YAG8Q~8OVFNDb~DAHEAhOYSXS~mm6xsv1vqkqaNE",
     "DirectoryId": "3e0289c2-e351-4c79-998b-8167c83a06d3"
   },
   "Host": {

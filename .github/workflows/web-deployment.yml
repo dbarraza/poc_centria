@@ -45,10 +45,10 @@ jobs:
         with: 
           appSourcePath: ${{ github.workspace }}/Frontend
           dockerfilePath: Dockerfile
-          acrName: acraicvscreeningeastustest
-          containerAppName: capps-web-cvscreen-eastus-test
+          acrName: acraicvscreeningeastusprod
+          containerAppName: capps-web-cvscreen-eastus-prod
           resourceGroup: RG-OPENAI
-          imageToBuild: acraicvscreeningeastustest.azurecr.io/poc-web-api:latest
+          imageToBuild: acraicvscreeningeastusprod.azurecr.io/poc-web-api:latest
 
       - name: Deploy the container app 
         uses: azure/cli@v2
@@ -56,9 +56,9 @@ jobs:
           cliversion: 2.30.0
           inlineScript: |
             az containerapp update \
-              --name capps-web-cvscreen-eastus-test \
+              --name capps-web-cvscreen-eastus-prod \
               --resource-group RG-OPENAI \
-              --image acraicvscreeningeastustest.azurecr.io/poc-web-api:latest \
+              --image acraicvscreeningeastusprod.azurecr.io/poc-web-api:latest \
               --cpu 1.0 \
               --memory 2.0Gi \
               --min-replicas 1 \

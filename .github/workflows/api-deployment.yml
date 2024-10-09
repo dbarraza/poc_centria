@@ -32,10 +32,10 @@ jobs:
         with: 
           appSourcePath: ${{ github.workspace }}/Backend
           dockerfilePath: Backend.Functions/Dockerfile
-          acrName: acraicvscreeningeastustest
-          containerAppName: capps-api-cvscreen-eastus-test
+          acrName: acraicvscreeningeastusprod
+          containerAppName: capps-api-cvscreen-eastus-prod
           resourceGroup: RG-OPENAI
-          imageToBuild: acraicvscreeningeastustest.azurecr.io/poc-ai-api:latest
+          imageToBuild: acraicvscreeningeastusprod.azurecr.io/poc-ai-api:latest
      
       - name: Deploy the container app 
         uses: azure/cli@v2
@@ -43,9 +43,9 @@ jobs:
           cliversion: 2.30.0
           inlineScript: |
             az containerapp update \
-              --name capps-api-cvscreen-eastus-test \
+              --name capps-api-cvscreen-eastus-prod \
               --resource-group RG-OPENAI \
-              --image acraicvscreeningeastustest.azurecr.io/poc-ai-api:latest \
+              --image acraicvscreeningeastusprod.azurecr.io/poc-ai-api:latest \
               --cpu 1.0 \
               --memory 2.0Gi \
               --min-replicas 1 \

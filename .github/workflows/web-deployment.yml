@@ -47,7 +47,7 @@ jobs:
           dockerfilePath: Dockerfile
           acrName: acraicvscreeningeastusprod
           containerAppName: capps-web-cvscreen-eastus-prod
-          resourceGroup: RG-OPENAI
+          resourceGroup: RG_OPENAI_PRD
           imageToBuild: acraicvscreeningeastusprod.azurecr.io/poc-web-api:latest
 
       - name: Deploy the container app 
@@ -57,7 +57,7 @@ jobs:
           inlineScript: |
             az containerapp update \
               --name capps-web-cvscreen-eastus-prod \
-              --resource-group RG-OPENAI \
+              --resource-group RG_OPENAI_PRD \
               --image acraicvscreeningeastusprod.azurecr.io/poc-web-api:latest \
               --cpu 1.0 \
               --memory 2.0Gi \

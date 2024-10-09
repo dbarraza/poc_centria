@@ -1,12 +1,12 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AppConfiguration": "Endpoint=https://app-ai-cv-screening-eastus-test.azconfig.io;Id=Dm5T;Secret=tdWsbBUz6aKC/b+ASmqcc+zjoTvWPFN6/9aSxQj/t0E=",
-    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=saaicvscreeningtest;AccountKey=M4ltkSPswQm09x8gLehOLPkHTUoPkL1FkfsQTC0pnWt1OpV9CsgQbul71V7v0kdO3Z2yemX6jo1R+AStM/sWjQ==;EndpointSuffix=core.windows.net",
-    "StorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=saaicvscreeningtest;AccountKey=M4ltkSPswQm09x8gLehOLPkHTUoPkL1FkfsQTC0pnWt1OpV9CsgQbul71V7v0kdO3Z2yemX6jo1R+AStM/sWjQ==;EndpointSuffix=core.windows.net",
+    "AppConfiguration": "Endpoint=https://app-ai-cv-screening-eastus-prod.azconfig.io;Id=9y4A;Secret=26l3iMz6QsUaYXI807TmoLP8m7kb7MdJMlUuYMJ3F7mTnGCFe8U6JQQJ99AJACYeBjFU5UlwAAACAZAC0uoG",
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=saaicvscreeningprod;AccountKey=nT8MG4khdEnJCxpHBVJIwEvgl+ThekScAIcQY4j5JwZv0JYpoATR9XQc1Dlk4EOy17Yc1ddualx0+AStbSMy5g==;EndpointSuffix=core.windows.net",
+    "StorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=saaicvscreeningprod;AccountKey=nT8MG4khdEnJCxpHBVJIwEvgl+ThekScAIcQY4j5JwZv0JYpoATR9XQc1Dlk4EOy17Yc1ddualx0+AStbSMy5g==;EndpointSuffix=core.windows.net",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "ClientId": "037fa12d-c75e-4961-878f-9a43641503fb",
-    "ClientSecret": "DSv8Q~fipfpVyFiFPkPUF1jD8SUNsOnujE5WqbJL",
+    "ClientId": "0dc2ab7b-d8cc-45a2-b853-0cdab754cccc",
+    "ClientSecret": "e0557ad4-431a-4dc1-8deb-cce387d82913",
     "DirectoryId": "3e0289c2-e351-4c79-998b-8167c83a06d3"
   },
   "Host": {
